@@ -24,10 +24,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 public class MCH_MultiplayPacketHandler {
-    private static final Logger logger = LogManager.getLogger();
     public static EntityPlayer modListRequestPlayer = null;
     private static final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss");
     private static byte[] imageData = null;
@@ -73,7 +73,7 @@ public class MCH_MultiplayPacketHandler {
     private static void destoryAllAircraft(EntityPlayer player) {
         CommandSummon cmd = new CommandSummon();
         if (cmd.checkPermission(MCH_Utils.getServer(), player)) {
-            for (Entity e : player.world.loadedEntityList) {
+            for (Entity e :  new ArrayList<>(player.world.loadedEntityList)) {
                 if (e instanceof MCH_EntityAircraft) {
                     e.setDead();
                 }
@@ -176,11 +176,11 @@ public class MCH_MultiplayPacketHandler {
     }
 
     public static void LogInfo(String format, Object... args) {
-        logger.info(String.format(format, args));
+        MCH_Lib.Log(String.format(format, args));
     }
 
     public static void LogError(String format, Object... args) {
-        logger.error(String.format(format, args));
+        MCH_Lib.Log(String.format(format, args));
     }
 
     @HandleSide({Side.CLIENT})

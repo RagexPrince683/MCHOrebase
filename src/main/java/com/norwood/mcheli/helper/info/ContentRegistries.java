@@ -4,6 +4,7 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.norwood.mcheli.MCH_BaseInfo;
+import com.norwood.mcheli.MCH_Lib;
 import com.norwood.mcheli.MCH_MOD;
 import com.norwood.mcheli.helper.addon.AddonManager;
 import com.norwood.mcheli.helper.addon.AddonPack;
@@ -20,6 +21,7 @@ import com.norwood.mcheli.weapon.MCH_WeaponInfo;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 public class ContentRegistries {
@@ -90,6 +92,8 @@ public class ContentRegistries {
     public static void loadContents(File addonDir) {
         Multimap<ContentType, ContentLoader.ContentEntry> contents = LinkedHashMultimap.create();
         List<AddonPack> addons = MCH_MOD.proxy.loadAddonPacks(addonDir);
+        MCH_Lib.Log("Registered content packs: " + addons.toString());
+
         MCH_MOD.proxy.onLoadStartAddons(addons.size());
         contents.putAll(loadAddonContents(BuiltinAddonPack.instance()));
 
@@ -139,12 +143,7 @@ public class ContentRegistries {
         ContentRegistry.Builder<T> builder = ContentRegistry.builder(clazz, dir);
         MCH_MOD.proxy.onLoadStartContents(dir, values.size());
 
-        for (ContentLoader.ContentEntry entry : values) {
-            IContentData content = entry.parse();
-            if (content != null) {
-                builder.put(clazz.cast(content));
-            }
-        }
+        values.stream().map(ContentLoader.ContentEntry::parse).filter(Objects::nonNull).map(clazz::cast).forEach(builder::put);
 
         MCH_MOD.proxy.onLoadFinishContents(dir);
         return builder.build();

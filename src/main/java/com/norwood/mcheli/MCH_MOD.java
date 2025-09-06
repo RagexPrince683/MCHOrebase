@@ -1,7 +1,5 @@
 package com.norwood.mcheli;
 
-import com.norwood.mcheli.helper.*;
-import com.norwood.mcheli.helper.info.ContentRegistries;
 import com.norwood.mcheli.aircraft.*;
 import com.norwood.mcheli.block.MCH_DraftingTableBlock;
 import com.norwood.mcheli.block.MCH_DraftingTableTileEntity;
@@ -17,6 +15,8 @@ import com.norwood.mcheli.gui.MCH_GuiCommonHandler;
 import com.norwood.mcheli.helicopter.MCH_EntityHeli;
 import com.norwood.mcheli.helicopter.MCH_HeliInfo;
 import com.norwood.mcheli.helicopter.MCH_ItemHeli;
+import com.norwood.mcheli.helper.*;
+import com.norwood.mcheli.helper.info.ContentRegistries;
 import com.norwood.mcheli.lweapon.MCH_ItemLightWeaponBase;
 import com.norwood.mcheli.lweapon.MCH_ItemLightWeaponBullet;
 import com.norwood.mcheli.mob.MCH_EntityGunner;
@@ -45,6 +45,7 @@ import com.norwood.mcheli.wrapper.W_LanguageRegistry;
 import com.norwood.mcheli.wrapper.W_NetworkRegistry;
 import net.minecraft.command.CommandHandler;
 import net.minecraft.item.Item.ToolMaterial;
+import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Loader;
@@ -61,8 +62,7 @@ import java.util.Map.Entry;
 
 @Mod(
         modid = "mcheli",
-        name = "MC Helicopter MOD",
-        dependencies = "required-after:forge@[14.23.5.2847,)"
+        name = "MC Helicopter MOD"
 )
 public class MCH_MOD {
     public static final String MOD_ID = "mcheli";
@@ -234,7 +234,7 @@ public class MCH_MOD {
         MCH_Lib.Log("Start load...");
         sourcePath = evt.getSourceFile().getPath();
         sourceFile = evt.getSourceFile();
-        addonDir = new File(evt.getModConfigurationDirectory().getParentFile(), "/mcheli_addons/");
+        addonDir = new File(evt.getModConfigurationDirectory().getParentFile(), ADDON_FOLDER_NAME);
         MCH_Lib.Log("SourcePath: " + sourcePath);
         MCH_Lib.Log("CurrentDirectory:" + new File(".").getAbsolutePath());
         proxy.init();
@@ -292,6 +292,8 @@ public class MCH_MOD {
     @EventHandler
     public void init(FMLInitializationEvent evt) {
         GameRegistry.registerTileEntity(MCH_DraftingTableTileEntity.class, MCH_Utils.suffix("drafting_table"));
+        if (World.MAX_ENTITY_RADIUS < 5)
+            World.MAX_ENTITY_RADIUS = 5;
         proxy.registerBlockRenderer();
     }
 
@@ -302,8 +304,12 @@ public class MCH_MOD {
         creativeTabsPlane.setFixedIconItem(MCH_Config.CreativeTabIconPlane.prmString);
         creativeTabsTank.setFixedIconItem(MCH_Config.CreativeTabIconTank.prmString);
         creativeTabsVehicle.setFixedIconItem(MCH_Config.CreativeTabIconVehicle.prmString);
-        MCH_WeaponInfoManager.setRoundItems();
         proxy.readClientModList();
+    }
+
+    @EventHandler
+    public void onLoadComplete(FMLLoadCompleteEvent evt) {
+        MCH_WeaponInfoManager.setRoundItems();
     }
 
     @EventHandler

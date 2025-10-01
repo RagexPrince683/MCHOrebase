@@ -1,8 +1,9 @@
 DisplayName = Project1204 Shmel Partol-Boat
+AddDisplayName = en_US, Project 1204 Shmel Patrol-Boat
 AddDisplayName = ja_JP, プロジェクト1204 Shmel国境警備艇
 ItemID = 28748
-MaxHp = 600
-Speed = 0.6
+MaxHp = 1850
+Speed = 0.28
 Sound = boat
 Float = true
 ThrottleUpDown = 0.9
@@ -12,8 +13,9 @@ MaxRotationPitch = 0
 MobilityRoll = 0
 Gravity = -0.1
 GravityInWater = 0.1
-DamageFactor = 0.8
-ThirdPersonDist = 24
+DamageFactor = 0.6
+
+PivotTurnThrottle = 0.2
 
 HUD = gunner, plane_gnr, plane_gnr, plane_gnr
 
@@ -39,7 +41,7 @@ AddSeat = -0.60, 2.80, -5.23
 AddSeat =  0.60, 2.80, -5.23
 
 AddWeapon = d56ts,    0.00, 1.68,   0.05, 0.0, 0.0, true,  2,   0, -145,145, -30.0, 4.0
-AddWeapon = mg7_62mm, 0.24, 1.68,   0.45, 0.0, 0.0, true,  2,   0, -145,145, -30.0, 4.0
+AddWeapon = prmg7_62mm, 0.24, 1.68,   0.45, 0.0, 0.0, true,  2,   0, -145,145, -30.0, 4.0
 AddWeapon = bm_14_17, 0.00, 2.31, -11.09, 0.0, 0.0, false, 3, 180, -140,140, -30.0, 0.0
 AddWeapon = 2m3m,     0.00, 2.06, -14.82, 0.0, 0.0, false, 4, 180, -170,170, -80.0, 5.0
 AddWeapon = 2m3m,     0.00, 2.26, -14.82, 0.0, 0.0, false, 4, 180, -170,170, -80.0, 5.0
@@ -72,11 +74,16 @@ AddParticleSplash = -1.5, -0.18,  -18.0,   3,      9.0,    1.1,   20,       0.30
 AddParticleSplash =  1.0, -0.18,  -20.0,   2,      9.0,    1.1,   60,       0.01,   0
 AddParticleSplash = -1.0, -0.18,  -20.0,   2,      9.0,    1.1,   60,       0.01,   0
 
-AddRecipe = "II ",  "AAA",  "BBP",   I, iron_ingot,  B, boat , A, anvil, P,piston
+;medium ship with armament
+AddRecipe = "ABC", "DER", "F  ", A, mcheli:shiphull2, B, mcheli:advancedmechanicparts, C, mcheli:engine3, D, mcheli:electronics, R, mcheli:rocket2, E, mcheli:cannon3, F, mcheli:cannon1
 
-BoundingBox =  0.0, 0.7,  4.0,  3.0, 3.0
+BoundingBox =  0.0, 0.7,  3.0,  3.0, 3.0
 BoundingBox =  0.0, 0.9,  0.0,  4.0, 4.0
 BoundingBox =  0.0, 0.9, -4.0,  4.0, 4.0
 BoundingBox =  0.0, 0.9, -8.0,  4.0, 4.0
 BoundingBox =  0.0, 0.9, -12.0,  4.0, 4.0
-BoundingBox =  0.0, 0.7, -16.0,  3.0,  3.0
+BoundingBox =  0.0, 0.7, -16.0,  4.0,  4.0
+
+unmountposition = 0.00, 1.50, -2.78
+
+enableback = true

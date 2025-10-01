@@ -4,6 +4,8 @@ import com.norwood.mcheli.MCH_Config;
 import com.norwood.mcheli.MCH_FileSearch;
 import com.norwood.mcheli.MCH_Lib;
 import com.norwood.mcheli.MCH_OStream;
+import com.norwood.mcheli.networking.packet.PacketImgDataChunk;
+import com.norwood.mcheli.networking.packet.PacketSendModlist;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.texture.TextureUtil;
@@ -13,13 +15,14 @@ import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.ModContainer;
 import net.minecraftforge.fml.relauncher.CoreModManager;
 import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.GL11; import net.minecraft.client.renderer.GlStateManager;
+import org.lwjgl.opengl.GL11;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.jar.JarEntry;
@@ -31,6 +34,7 @@ public class MCH_MultiplayClient {
     private static int[] pixelValues;
     private static MCH_OStream dataOutputStream;
     private static List<String> modList = new ArrayList<>();
+    private static int packetIndex;
 
     public static void startSendImageData() {
         Minecraft mc = Minecraft.getMinecraft();
@@ -89,15 +93,32 @@ public class MCH_MultiplayClient {
 
     public static void sendImageData() {
         if (dataOutputStream != null) {
-            MCH_PacketLargeData.send();
-            if (dataOutputStream.isDataEnd()) {
+            byte[] buffer = dataOutputStream.toByteArray();
+            int totalSize = dataOutputStream.size();
+            int chunkSize = 128;
+
+            int start = packetIndex * chunkSize;
+            if (start < totalSize) {
+                int length = Math.min(chunkSize, totalSize - start);
+
+                PacketImgDataChunk packet = new PacketImgDataChunk();
+                packet.imageDataIndex = start;
+                packet.buf = Arrays.copyOfRange(buffer, start, start + length);
+
+                packet.sendToServer();
+
+                packetIndex++;
+            }
+
+            if (packetIndex * chunkSize >= totalSize) {
                 dataOutputStream = null;
+                packetIndex = 0;
             }
         }
     }
 
     public static double getPerData() {
-        return dataOutputStream == null ? -1.0 : (double) dataOutputStream.index / dataOutputStream.size();
+         return  (double) dataOutputStream.index / dataOutputStream.size();
     }
 
     public static void readModList(String playerName, String commandSenderName) {
@@ -241,6 +262,6 @@ public class MCH_MultiplayClient {
             readModList(playerName, commandSenderName);
         }
 
-        MCH_PacketModList.send(modList, id);
+        PacketSendModlist.send(modList, id);
     }
 }

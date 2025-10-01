@@ -153,10 +153,7 @@ public class MCH_EntityFlare extends W_Entity implements IEntityAdditionalSpawnD
         Vec3d vec3 = new Vec3d(this.posX, this.posY, this.posZ);
         Vec3d vec31 = new Vec3d(this.posX + this.motionX, this.posY + this.motionY, this.posZ + this.motionZ);
         RayTraceResult mop = W_WorldFunc.clip(this.world, vec3, vec31);
-        vec3 = new Vec3d(this.posX, this.posY, this.posZ);
-        vec31 = new Vec3d(this.posX + this.motionX, this.posY + this.motionY, this.posZ + this.motionZ);
         if (mop != null) {
-            vec31 = new Vec3d(mop.hitVec.x, mop.hitVec.y, mop.hitVec.z);
             this.onImpact(mop);
         }
     }

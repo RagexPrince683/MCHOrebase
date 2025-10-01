@@ -1,12 +1,15 @@
 package com.norwood.mcheli;
 
 import com.norwood.mcheli.helper.world.MCH_ExplosionV2;
+import com.norwood.mcheli.networking.data.DataExplosionParameters;
+import com.norwood.mcheli.networking.packet.PacketParticleEffect;
 import com.norwood.mcheli.wrapper.W_Entity;
 import net.minecraft.entity.Entity;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
 
+@Deprecated//Piece of shit, im axing it soon
 public class MCH_Explosion {
     public static MCH_Explosion.ExplosionResult newExplosion(
             World w,
@@ -26,8 +29,9 @@ public class MCH_Explosion {
         return newExplosion(w, entityExploded, player, x, y, z, size, sizeBlock, playSound, isSmoking, isFlaming, isDestroyBlock, countSetFireEntity, null);
     }
 
+
     public static MCH_Explosion.ExplosionResult newExplosion(
-            World w,
+            World world,
             @Nullable Entity entityExploded,
             @Nullable Entity player,
             double x,
@@ -42,10 +46,10 @@ public class MCH_Explosion {
             int countSetFireEntity,
             MCH_DamageFactor df
     ) {
-        if (w.isRemote) {
+        if (world.isRemote) {
             return null;
         } else {
-            MCH_ExplosionV2 exp = new MCH_ExplosionV2(w, entityExploded, player, x, y, z, size, isFlaming, w.getGameRules().getBoolean("mobGriefing"));
+            MCH_ExplosionV2 exp = new MCH_ExplosionV2(world, entityExploded, player, x, y, z, size, isFlaming, world.getGameRules().getBoolean("mobGriefing"));
             exp.isDestroyBlock = isDestroyBlock;
             exp.explosionSizeBlock = sizeBlock;
             exp.countSetFireEntity = countSetFireEntity;
@@ -54,22 +58,22 @@ public class MCH_Explosion {
             exp.damageFactor = df;
             exp.doExplosionA();
             exp.doExplosionB(false);
-            MCH_PacketEffectExplosion.ExplosionParam param = MCH_PacketEffectExplosion.create();
+            DataExplosionParameters param = new DataExplosionParameters();
             param.exploderID = W_Entity.getEntityId(entityExploded);
-            param.posX = x;
-            param.posY = y;
-            param.posZ = z;
+            param.x = x;
+            param.y = y;
+            param.z = z;
             param.size = size;
             param.inWater = false;
             param.setAffectedPositions(exp.getAffectedBlockPositions());
-            MCH_PacketEffectExplosion.send(param);
+            new PacketParticleEffect(param).sendAround(world);
             return exp.getResult();
         }
     }
 
     @Nullable
     public static MCH_Explosion.ExplosionResult newExplosionInWater(
-            World w,
+            World world,
             @Nullable Entity entityExploded,
             @Nullable Entity player,
             double x,
@@ -84,10 +88,10 @@ public class MCH_Explosion {
             int countSetFireEntity,
             MCH_DamageFactor df
     ) {
-        if (w.isRemote) {
+        if (world.isRemote) {
             return null;
         } else {
-            MCH_ExplosionV2 exp = new MCH_ExplosionV2(w, entityExploded, player, x, y, z, size, isFlaming, w.getGameRules().getBoolean("mobGriefing"));
+            MCH_ExplosionV2 exp = new MCH_ExplosionV2(world, entityExploded, player, x, y, z, size, isFlaming, world.getGameRules().getBoolean("mobGriefing"));
             exp.isDestroyBlock = isDestroyBlock;
             exp.explosionSizeBlock = sizeBlock;
             exp.countSetFireEntity = countSetFireEntity;
@@ -96,15 +100,15 @@ public class MCH_Explosion {
             exp.damageFactor = df;
             exp.doExplosionA();
             exp.doExplosionB(false);
-            MCH_PacketEffectExplosion.ExplosionParam param = MCH_PacketEffectExplosion.create();
+            DataExplosionParameters param = new DataExplosionParameters();
             param.exploderID = W_Entity.getEntityId(entityExploded);
-            param.posX = x;
-            param.posY = y;
-            param.posZ = z;
+            param.x = x;
+            param.y = y;
+            param.z = z;
             param.size = size;
             param.inWater = true;
             param.setAffectedPositions(exp.getAffectedBlockPositions());
-            MCH_PacketEffectExplosion.send(param);
+            new PacketParticleEffect(param).sendAround(world);
             return exp.getResult();
         }
     }

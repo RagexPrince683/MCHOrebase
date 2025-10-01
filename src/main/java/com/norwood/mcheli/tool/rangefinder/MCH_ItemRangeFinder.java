@@ -2,7 +2,7 @@ package com.norwood.mcheli.tool.rangefinder;
 
 import com.norwood.mcheli.aircraft.MCH_EntityAircraft;
 import com.norwood.mcheli.aircraft.MCH_EntitySeat;
-import com.norwood.mcheli.multiplay.MCH_PacketIndSpotEntity;
+import com.norwood.mcheli.networking.packet.PacketRequestSpotEnemy;
 import com.norwood.mcheli.wrapper.W_Item;
 import com.norwood.mcheli.wrapper.W_McClient;
 import com.norwood.mcheli.wrapper.W_Reflection;
@@ -71,10 +71,10 @@ public class MCH_ItemRangeFinder extends W_Item {
         if (player != null && player.world.isRemote && rangeFinderUseCooldown == 0 && player.getItemInUseMaxCount() > 8) {
             if (mode == 2) {
                 rangeFinderUseCooldown = 60;
-                MCH_PacketIndSpotEntity.send(player, 0);
+                new PacketRequestSpotEnemy(0).sendToServer();
             } else if (itemStack.getMetadata() < itemStack.getMaxDamage()) {
                 rangeFinderUseCooldown = 60;
-                MCH_PacketIndSpotEntity.send(player, mode == 0 ? 60 : 3);
+                new PacketRequestSpotEnemy(mode == 0 ? 60 : 3).sendToServer();
             } else {
                 W_McClient.MOD_playSoundFX("ng", 1.0F, 1.0F);
             }

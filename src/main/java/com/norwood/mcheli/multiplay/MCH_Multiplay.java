@@ -5,6 +5,8 @@ import com.norwood.mcheli.helper.MCH_Utils;
 import com.norwood.mcheli.helper.entity.IEntitySinglePassenger;
 import com.norwood.mcheli.aircraft.MCH_EntityAircraft;
 import com.norwood.mcheli.helicopter.MCH_EntityHeli;
+import com.norwood.mcheli.networking.packet.PacketMarkPos;
+import com.norwood.mcheli.networking.packet.PacketSpotEnemy;
 import com.norwood.mcheli.plane.MCP_EntityPlane;
 import com.norwood.mcheli.ship.MCH_EntityShip;
 import com.norwood.mcheli.tank.MCH_EntityTank;
@@ -288,9 +290,10 @@ public class MCH_Multiplay {
     public static void sendSpotedEntityListToSameTeam(EntityLivingBase player, int count, int[] entityId) {
         PlayerList svCnf = MCH_Utils.getServer().getPlayerList();
 
-        for (EntityPlayer notifyPlayer : svCnf.getPlayers()) {
+        for (EntityPlayerMP notifyPlayer : svCnf.getPlayers()) {
             if (player == notifyPlayer || player.isOnSameTeam(notifyPlayer)) {
-                MCH_PacketNotifySpotedEntity.send(notifyPlayer, count, entityId);
+                PacketSpotEnemy.send(notifyPlayer, count, entityId);
+
             }
         }
     }
@@ -314,7 +317,7 @@ public class MCH_Multiplay {
 
         for (EntityPlayer notifyPlayer : svCnf.getPlayers()) {
             if (player == notifyPlayer || player.isOnSameTeam(notifyPlayer)) {
-                MCH_PacketNotifyMarkPoint.send(notifyPlayer, x, y, z);
+                new PacketMarkPos(x,y,z).sendToPlayer((EntityPlayerMP) player);
             }
         }
     }

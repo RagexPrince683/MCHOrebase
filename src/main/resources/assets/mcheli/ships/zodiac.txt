@@ -1,8 +1,8 @@
-DisplayName = Small Zodiac Boat
-AddDisplayName = ja_JP, Small ゴムボート
+DisplayName = Zodiac Boat
+AddDisplayName = ja_JP, ゴムボート
 ItemID = 28743
-MaxHp = 55
-Speed = 0.4
+MaxHp = 100
+Speed = 0.5
 Float = true
 FloatOffset = -0.5
 Sound = prop
@@ -13,14 +13,7 @@ Gravity = -0.15
 GravityInWater = -0.1
 DamageFactor = 1.0
 StepHeight = 0.0
-
-PivotTurnThrottle = 0.2
-
-sound = zodiac
-
-onGroundPitch = 4
-
-unmountposition = 0.0, 1.0, 0.0
+ThirdPersonDist = 4
 
 CanMoveOnGround = false
 CanRotOnGround  = false
@@ -44,10 +37,5 @@ AddParticleSplash =  0.5,  0.15, -0.8,   2,      7.0,    1.0,   60,       0.01, 
 
 AddPartSteeringWheel =  0.00,  0.00, -1.21,  0.0, -1.0, 0.0,   30
 
-;small light transport rubber
-AddRecipe = " C ", "DDD", "   ", C, mcheli:engine1, D, mcheli:rubber
-
-
-enableback = true
-
+AddRecipe = " W ",  "W W",  " X ",  X, iron_ingot, W, wool
 

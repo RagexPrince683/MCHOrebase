@@ -1,12 +1,15 @@
 package com.norwood.mcheli.multiplay;
 
 import com.norwood.mcheli.MCH_ServerSettings;
+import com.norwood.mcheli.networking.packet.PacketHandleCommand;
 import com.norwood.mcheli.wrapper.W_GuiButton;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.entity.player.EntityPlayer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+
+import static com.norwood.mcheli.networking.packet.PacketHandleCommand.*;
 
 public class MCH_GuiScoreboard_Main extends MCH_GuiScoreboard_Base {
     private W_GuiButton buttonSwitchPVP;
@@ -60,20 +63,11 @@ public class MCH_GuiScoreboard_Main extends MCH_GuiScoreboard_Base {
     protected void actionPerformed(@NotNull GuiButton btn) {
         if (btn.enabled) {
             switch (btn.id) {
-                case 256:
-                    MCH_PacketIndMultiplayCommand.send(256, "");
-                    break;
-                case 512:
-                    this.switchScreen(MCH_GuiScoreboard_Base.SCREEN_ID.CREATE_TEAM);
-                    break;
-                case 768:
-                    MCH_PacketIndMultiplayCommand.send(512, "");
-                    break;
-                case 1024:
-                    MCH_PacketIndMultiplayCommand.send(1024, "");
-                    break;
-                case 1280:
-                    MCH_PacketIndMultiplayCommand.send(1280, "");
+                case 256 -> new PacketHandleCommand(CommandAction.SHUFFLE_TEAM, "").sendToServer();
+                case 512 -> this.switchScreen(SCREEN_ID.CREATE_TEAM);
+                case 768 -> new PacketHandleCommand(CommandAction.JUMP_SPAWNPOINT, "").sendToServer();
+                case 1024 -> new PacketHandleCommand(CommandAction.SETPVP, "").sendToServer();
+                case 1280 -> new PacketHandleCommand(CommandAction.DESTROY_AIRCRAFT, "").sendToServer();
             }
         }
     }

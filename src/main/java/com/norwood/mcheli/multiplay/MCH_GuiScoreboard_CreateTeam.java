@@ -1,5 +1,6 @@
 package com.norwood.mcheli.multiplay;
 
+import com.norwood.mcheli.networking.packet.PacketHandleCommand;
 import com.norwood.mcheli.wrapper.W_McClient;
 import com.norwood.mcheli.wrapper.W_ScaledResolution;
 import net.minecraft.client.gui.GuiButton;
@@ -8,9 +9,11 @@ import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.text.TextFormatting;
 import org.jetbrains.annotations.NotNull;
-import org.lwjgl.opengl.GL11; import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.GlStateManager;
 
 import java.io.IOException;
+
+import static com.norwood.mcheli.networking.packet.PacketHandleCommand.*;
 
 public class MCH_GuiScoreboard_CreateTeam extends MCH_GuiScoreboard_Base {
     private static final String[] colorNames = new String[]{
@@ -100,9 +103,9 @@ public class MCH_GuiScoreboard_CreateTeam extends MCH_GuiScoreboard_Base {
                 case 528:
                     String teamName = this.editCreateTeamName.getText();
                     if (!teamName.isEmpty() && teamName.length() <= 16) {
-                        MCH_PacketIndMultiplayCommand.send(768, "scoreboard teams add " + teamName);
-                        MCH_PacketIndMultiplayCommand.send(768, "scoreboard teams option " + teamName + " color " + colorNames[this.lastTeamColor]);
-                        MCH_PacketIndMultiplayCommand.send(768, "scoreboard teams option " + teamName + " friendlyfire " + friendlyFire);
+                        new PacketHandleCommand(CommandAction.RAW_COMMAND, "scoreboard teams add " + teamName).sendToServer();
+                        new PacketHandleCommand(CommandAction.RAW_COMMAND, "scoreboard teams option " + teamName + " color " + colorNames[this.lastTeamColor]).sendToServer();
+                        new PacketHandleCommand(CommandAction.RAW_COMMAND, "scoreboard teams option " + teamName + " friendlyfire " + friendlyFire).sendToServer();
                     }
 
                     this.switchScreen(MCH_GuiScoreboard_Base.SCREEN_ID.MAIN);

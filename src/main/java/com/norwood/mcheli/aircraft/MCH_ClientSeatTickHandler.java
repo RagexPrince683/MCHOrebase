@@ -4,7 +4,7 @@ import com.norwood.mcheli.MCH_ClientTickHandlerBase;
 import com.norwood.mcheli.MCH_Config;
 import com.norwood.mcheli.MCH_Key;
 import com.norwood.mcheli.MCH_Lib;
-import com.norwood.mcheli.wrapper.W_Network;
+import com.norwood.mcheli.networking.packet.PacketSeatPlayerControl;
 import com.norwood.mcheli.wrapper.W_Reflection;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
@@ -72,7 +72,7 @@ public class MCH_ClientSeatTickHandler extends MCH_ClientTickHandlerBase {
     }
 
     private void playerControl(EntityPlayer player, MCH_EntitySeat seat, MCH_EntityAircraft ac) {
-        MCH_PacketSeatPlayerControl pc = new MCH_PacketSeatPlayerControl();
+        PacketSeatPlayerControl playerControl = new PacketSeatPlayerControl();
         boolean send = false;
         if (this.KeyFreeLook.isKeyDown() && ac.canSwitchGunnerFreeLook(player)) {
             ac.switchGunnerFreeLookMode();
@@ -80,10 +80,10 @@ public class MCH_ClientSeatTickHandler extends MCH_ClientTickHandlerBase {
 
         if (this.KeyParachuting.isKeyDown()) {
             if (ac.canParachuting(player)) {
-                pc.parachuting = true;
+                playerControl.parachuting = true;
                 send = true;
             } else if (ac.canRepelling(player)) {
-                pc.parachuting = true;
+                playerControl.parachuting = true;
                 send = true;
             } else {
                 playSoundNG();
@@ -91,7 +91,7 @@ public class MCH_ClientSeatTickHandler extends MCH_ClientTickHandlerBase {
         }
 
         if (send) {
-            W_Network.sendToServer(pc);
+            playerControl.sendToServer();
         }
     }
 }

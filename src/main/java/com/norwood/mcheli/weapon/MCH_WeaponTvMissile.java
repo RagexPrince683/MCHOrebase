@@ -1,7 +1,7 @@
 package com.norwood.mcheli.weapon;
 
 import com.norwood.mcheli.aircraft.MCH_EntityAircraft;
-import com.norwood.mcheli.aircraft.MCH_PacketNotifyTVMissileEntity;
+import com.norwood.mcheli.networking.packet.PacketNotifyTVMissileEntity;
 import com.norwood.mcheli.wrapper.W_Entity;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.MathHelper;
@@ -53,7 +53,11 @@ public class MCH_WeaponTvMissile extends MCH_WeaponBase {
                         && !this.lastShotTvMissile.isDead
                         && this.lastShotEntity != null
                         && !this.lastShotEntity.isDead) {
-                    MCH_PacketNotifyTVMissileEntity.send(W_Entity.getEntityId(this.lastShotEntity), W_Entity.getEntityId(this.lastShotTvMissile));
+                    int heliEntityID = W_Entity.getEntityId(this.lastShotEntity);
+                    new PacketNotifyTVMissileEntity(
+                    heliEntityID,
+                            W_Entity.getEntityId(this.lastShotTvMissile))
+                   .sendToClients();
                 }
 
                 if (this.tick == 9) {

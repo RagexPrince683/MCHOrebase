@@ -72,17 +72,14 @@ import java.util.Map.Entry;
 
 @Mod(
         modid = "mcheli",
-        name = "MC Helicopter MOD"
+        name = "MC Helicopter MOD",
+        dependencies = "required-after:elegant_networking;after:hbm"
 )
 public class MCH_MOD {
-    public static final String MOD_ID = "mcheli";
+    public static final String MOD_ID = Tags.MODID;
     @Deprecated
-    public static final String DOMAIN = "mcheli";
-    public static final String MOD_NAME = "MC Helicopter MOD";
-    public static final String MCVER = "1.12.2";
-    public static final String MOD_CH = "MCHeli_CH";
+    public static final String DOMAIN = MOD_ID;
     public static final String ADDON_FOLDER_NAME = "mcheli_addons";
-    public static final MCH_PacketHandler packetHandler = new MCH_PacketHandler();
     public static String VER = "";
     @Instance("mcheli")
     public static MCH_MOD instance;
@@ -353,7 +350,6 @@ public class MCH_MOD {
         W_LanguageRegistry.addNameForObject(blockDraftingTable, "ja_jp", "製図台");
         MCH_CriteriaTriggers.registerTriggers();
         MCH_Lib.Log("Register system");
-        W_NetworkRegistry.registerChannel(packetHandler, "MCHeli_CH");
         MinecraftForge.EVENT_BUS.register(new MCH_EventHook());
         proxy.registerClientTick();
         W_NetworkRegistry.registerGuiHandler(this, new MCH_GuiCommonHandler());

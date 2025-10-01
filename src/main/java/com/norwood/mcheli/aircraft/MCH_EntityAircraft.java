@@ -11,6 +11,7 @@ import com.norwood.mcheli.helper.entity.ITargetMarkerObject;
 import com.norwood.mcheli.mob.MCH_EntityGunner;
 import com.norwood.mcheli.mob.MCH_ItemSpawnGunner;
 import com.norwood.mcheli.multiplay.MCH_Multiplay;
+import com.norwood.mcheli.networking.packet.*;
 import com.norwood.mcheli.parachute.MCH_EntityParachute;
 import com.norwood.mcheli.particles.MCH_ParticleParam;
 import com.norwood.mcheli.particles.MCH_ParticlesUtil;
@@ -53,7 +54,10 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockPos.PooledMutableBlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.*;
+import net.minecraft.world.EnumDifficulty;
+import net.minecraft.world.Explosion;
+import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
 import net.minecraft.world.border.WorldBorder;
 import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
 import net.minecraftforge.fml.relauncher.Side;
@@ -86,7 +90,6 @@ public abstract class MCH_EntityAircraft
     private static final DataParameter<String> TEXTURE_NAME = EntityDataManager.createKey(MCH_EntityAircraft.class, DataSerializers.STRING);
     private static final DataParameter<Integer> UAV_STATION = EntityDataManager.createKey(MCH_EntityAircraft.class, DataSerializers.VARINT);
     private static final DataParameter<Integer> STATUS = EntityDataManager.createKey(MCH_EntityAircraft.class, DataSerializers.VARINT);
-    //TODO: check this to see it's being PROPERLY parsed how 1.7 does it. This might be the cause of our infinite ammo bug.
     private static final DataParameter<Integer> USE_WEAPON = EntityDataManager.createKey(MCH_EntityAircraft.class, DataSerializers.VARINT);
     private static final DataParameter<Integer> FUEL = EntityDataManager.createKey(MCH_EntityAircraft.class, DataSerializers.VARINT);
     private static final DataParameter<Integer> ROT_ROLL = EntityDataManager.createKey(MCH_EntityAircraft.class, DataSerializers.VARINT);
@@ -220,8 +223,6 @@ public abstract class MCH_EntityAircraft
     private double lastCalcLandInDistanceCount;
     private double lastLandInDistance;
     private boolean switchSeat = false;
-
-    private final Set<BlockPos.MutableBlockPos> activeLights = new HashSet<>();
 
     public MCH_EntityAircraft(World world) {
         super(world);
@@ -411,7 +412,6 @@ public abstract class MCH_EntityAircraft
         this.dataManager.register(ID_TYPE, "");
         this.dataManager.register(DAMAGE, 0);
         this.dataManager.register(STATUS, 0);
-        //TODO: marker
         this.dataManager.register(USE_WEAPON, 0);
         this.dataManager.register(FUEL, 0);
         this.dataManager.register(TEXTURE_NAME, "");
@@ -885,7 +885,7 @@ public abstract class MCH_EntityAircraft
         this.setFuel(nbt.getInteger("AcFuel"));
         int[] wa_list = nbt.getIntArray("AcWeaponsAmmo");
 
-        for(int i = 0; i < wa_list.length; ++i) {
+        for (int i = 0; i < wa_list.length; i++) {
             this.getWeapon(i).setRestAllAmmoNum(wa_list[i]);
             this.getWeapon(i).reloadMag();
         }
@@ -1560,7 +1560,7 @@ public abstract class MCH_EntityAircraft
         }
 
         if ((this.aircraftRotChanged || this.aircraftRollRev) && this.world.isRemote && this.getRiddenByEntity() != null) {
-            MCH_PacketIndRotation.send(this);
+            PacketIndRotation.send(this);
             this.aircraftRotChanged = false;
             this.aircraftRollRev = false;
         }
@@ -1587,10 +1587,6 @@ public abstract class MCH_EntityAircraft
                 this.setDead(true);
             }
         }
-
-
-        //updateSearchlightBlocks();
-
 
         super.onUpdate();
         if (this.getParts() != null) {
@@ -1714,94 +1710,46 @@ public abstract class MCH_EntityAircraft
         this.prevPosition.put(new Vec3d(this.posX, this.posY, this.posZ));
     }
 
-
-    /***
-     * oh my fucking god why I hate porting to 1.12 I hate porting to 1.12
-     *
-    private void updateSearchlightBlocks() {
-        Set<ChunkCoordinates> newLights = new HashSet<>();
-
-        if (!world.isRemote && haveSearchLight() && isSearchLightON()) {
-            for (Object o : this.getAcInfo().searchLights) {
-                MCH_AircraftInfo.SearchLight sl = (MCH_AircraftInfo.SearchLight) o;
-                Vec3 p = getTransformedPosition(sl.pos);
-
-                int bx = MathHelper.floor_double(p.xCoord);
-                int by = MathHelper.floor_double(p.yCoord);
-                int bz = MathHelper.floor_double(p.zCoord);
-
-                ChunkCoordinates coord = new ChunkCoordinates(bx, by, bz);
-                newLights.add(coord);
-
-                // Only place if the spot is pure air
-                if (worldObj.isAirBlock(bx, by, bz) && worldObj.getBlock(bx, by, bz) != MCH_MOD.lightBlock) {
-                    //maybe remove worldObj.getBlock(bx, by, bz) != MCH_MOD.lightBlock? idk doesn't seem like a good idea to me.
-                    worldObj.setBlock(bx, by, bz, MCH_MOD.lightBlock, 0, 2);
-                    worldObj.markBlockForUpdate(bx, by, bz);
-                    worldObj.updateLightByType(EnumSkyBlock.Block, bx, by, bz);
-                }
-                // If it's already our light block, just refresh it in newLights
-            }
-        }
-
-        // Remove old light blocks that are no longer needed
-        for (ChunkCoordinates oldCoord : activeLights) {
-            if (!newLights.contains(oldCoord)) {
-                int x = oldCoord.posX, y = oldCoord.posY, z = oldCoord.posZ;
-                // Only remove if it's still our light block
-                if (worldObj.getBlock(x, y, z) == MCH_MOD.lightBlock) {
-                    worldObj.setBlockToAir(x, y, z);
-                    worldObj.markBlockForUpdate(x, y, z);
-                    worldObj.updateLightByType(EnumSkyBlock.Block, x, y, z);
-                }
-            }
-        }
-
-        activeLights.clear();
-        activeLights.addAll(newLights);
-    }
-    ***/
     //Fixed for you furboy
-    private void updateSearchlightBlocks() {
-        Set<BlockPos> newLights = new HashSet<>();
-
-        if (!world.isRemote && haveSearchLight() && isSearchLightON()) {
-            for (Object o : this.getAcInfo().searchLights) {
-                MCH_AircraftInfo.SearchLight sl = (MCH_AircraftInfo.SearchLight) o;
-                Vec3d pos = getTransformedPosition(sl.pos);
-
-                BlockPos.MutableBlockPos blockPos = new BlockPos.MutableBlockPos(MathHelper.floor(pos.x),
-                 MathHelper.floor(pos.y),
-                 MathHelper.floor(pos.z));
-
-                newLights.add(blockPos);
-
-                // Only place if the spot is pure air
-                if (world.isAirBlock(blockPos) && world.getBlockState(blockPos).getBlock() != MCH_MOD.lightBlock) {
-                    //maybe remove world.getBlock(blockPos) != MCH_MOD.lightBlock? idk doesn't seem like a good idea to me.
-                    world.setBlockState(blockPos, MCH_MOD.lightBlock.getDefaultState(), 0, 2);
-                    world.checkLightFor(EnumSkyBlock.BLOCK, blockPos);
-
-                }
-                // If it's already our light block, just refresh it in newLights
-            }
-        }
-
-        // Remove old light blocks that are no longer needed
-        for (BlockPos.MutableBlockPos oldPos : activeLights) {
-            if (!newLights.contains(oldPos)) {
-                // Only remove if it's still our light block
-                if (world.getBlockState(oldPos) == MCH_MOD.lightBlock) {
-                    world.setBlockToAir(oldPos);
-                    world.checkLightFor(EnumSkyBlock.BLOCK, oldPos);
-                }
-            }
-        }
-
-        activeLights.clear();
-        activeLights.addAll(newLights);
-    }
-//>>>>>>> master
+//    private void updateSearchlightBlocks() {
+//        Set<BlockPos> newLights = new HashSet<>();
+//
+//        if (!world.isRemote && haveSearchLight() && isSearchLightON()) {
+//            for (Object o : this.getAcInfo().searchLights) {
+//                MCH_AircraftInfo.SearchLight sl = (MCH_AircraftInfo.SearchLight) o;
+//                Vec3d pos = getTransformedPosition(sl.pos);
+//
+//                BlockPos.MutableBlockPos blockPos = new BlockPos.MutableBlockPos(MathHelper.floor(pos.x),
+//                 MathHelper.floor(pos.y),
+//                 MathHelper.floor(pos.z));
+//
+//                newLights.add(blockPos);
+//
+//                // Only place if the spot is pure air
+//                if (world.isAirBlock(blockPos) && world.getBlockState(blockPos).getBlock() != MCH_MOD.lightBlock) {
+//                    //maybe remove world.getBlock(blockPos) != MCH_MOD.lightBlock? idk doesn't seem like a good idea to me.
+//                    world.setBlockState(blockPos, MCH_MOD.lightBlock.getDefaultState(), 0, 2);
+//                    world.checkLightFor(EnumSkyBlock.BLOCK, blockPos);
+//
+//                }
+//                // If it's already our light block, just refresh it in newLights
+//            }
+//        }
+//
+//        // Remove old light blocks that are no longer needed
+//        for (BlockPos.MutableBlockPos oldPos : activeLights) {
+//            if (!newLights.contains(oldPos)) {
+//                // Only remove if it's still our light block
+//                if (world.getBlockState(oldPos) == MCH_MOD.lightBlock) {
+//                    world.setBlockToAir(oldPos);
+//                    world.checkLightFor(EnumSkyBlock.BLOCK, oldPos);
+//                }
+//            }
+//        }
+//
+//        activeLights.clear();
+//        activeLights.addAll(newLights);
+//    }
 
     private void updateNoCollisionEntities() {
         if (!this.world.isRemote) {
@@ -2586,72 +2534,64 @@ public abstract class MCH_EntityAircraft
     }
 
     public void updateSupplyAmmo() {
-        if(!super.world.isRemote) {
-            boolean isReloading = false;
-            if(this.getRiddenByEntity() instanceof EntityPlayer && !this.getRiddenByEntity().isDead && ((EntityPlayer)this.getRiddenByEntity()).openContainer instanceof MCH_AircraftGuiContainer) {
-                isReloading = true;
-            }
+        if (!this.world.isRemote) {
+            boolean isReloading = this.getRiddenByEntity() instanceof EntityPlayer
+                    && !this.getRiddenByEntity().isDead
+                    && ((EntityPlayer) this.getRiddenByEntity()).openContainer instanceof MCH_AircraftGuiContainer;
 
             this.setCommonStatus(2, isReloading);
-            if(!this.isDestroyed() && this.beforeSupplyAmmo && !isReloading) {
+            if (!this.isDestroyed() && this.beforeSupplyAmmo && !isReloading) {
                 this.reloadAllWeapon();
-                MCH_PacketNotifyAmmoNum.sendAllAmmoNum(this, (EntityPlayer)null);
+                PacketNotifyAmmoNum.sendAllAmmoNum(this, null);
             }
 
             this.beforeSupplyAmmo = isReloading;
         }
 
-        if(this.getCommonStatus(2)) {
+        if (this.getCommonStatus(2)) {
             this.supplyAmmoWait = 20;
         }
 
-        if(this.supplyAmmoWait > 0) {
-            --this.supplyAmmoWait;
+        if (this.supplyAmmoWait > 0) {
+            this.supplyAmmoWait--;
         }
-
     }
 
     public void supplyAmmo(int weaponID) {
-        if(super.world.isRemote) {
-            MCH_WeaponSet player = this.getWeapon(weaponID);
-            player.supplyRestAllAmmo();
+        if (this.world.isRemote) {
+            MCH_WeaponSet ws = this.getWeapon(weaponID);
+            ws.supplyRestAllAmmo();
         } else {
-            //MCH_Achievement.addStat(super.riddenByEntity, MCH_Achievement.supplyAmmo, 1);
-            MCH_CriteriaTriggers.SUPPLY_AMMO.trigger((EntityPlayerMP) this.getRiddenByEntity());
-            if(this.getRiddenByEntity() instanceof EntityPlayer) {
-                EntityPlayer var9 = (EntityPlayer)this.getRiddenByEntity();
-                if(this.canPlayerSupplyAmmo(var9, weaponID)) {
-                    MCH_WeaponSet ws = this.getWeapon(weaponID);
-                    Iterator i$ = ws.getInfo().roundItems.iterator();
+            if (this.getRiddenByEntity() instanceof EntityPlayerMP) {
+                MCH_CriteriaTriggers.SUPPLY_AMMO.trigger((EntityPlayerMP) this.getRiddenByEntity());
+            }
 
-                    while(i$.hasNext()) {
-                        MCH_WeaponInfo.RoundItem ri = (MCH_WeaponInfo.RoundItem)i$.next();
+            if (this.getRiddenByEntity() instanceof EntityPlayer player) {
+                if (this.canPlayerSupplyAmmo(player, weaponID)) {
+                    MCH_WeaponSet ws = this.getWeapon(weaponID);
+
+                    for (MCH_WeaponInfo.RoundItem ri : ws.getInfo().roundItems) {
                         int num = ri.num;
 
-                        for(int i = 0; i < var9.inventory.mainInventory.size(); ++i) { //length in 1.7
-                            ItemStack itemStack = var9.inventory.mainInventory.get(i);
-                            if(itemStack != null && itemStack.isItemEqual(ri.itemStack)) {
-                                if(itemStack.getItem() != W_Item.getItemByName("water_bucket") && itemStack.getItem() != W_Item.getItemByName("lava_bucket")) {
+                        for (int i = 0; i < player.inventory.mainInventory.size(); i++) {
+                            ItemStack itemStack = player.inventory.mainInventory.get(i);
+                            if (!itemStack.isEmpty() && itemStack.isItemEqual(ri.itemStack)) {
+                                if (itemStack.getItem() != W_Item.getItemByName("water_bucket") && itemStack.getItem() != W_Item.getItemByName("lava_bucket")) {
                                     if (itemStack.getCount() > num) {
-                                        itemStack.setCount(itemStack.getCount() - num);
+                                        itemStack.shrink(num);
                                         num = 0;
-
                                     } else {
                                         num -= itemStack.getCount();
                                         itemStack.setCount(0);
-                                        var9.inventory.mainInventory.set(i, ItemStack.EMPTY);
+                                        player.inventory.mainInventory.set(i, ItemStack.EMPTY);
                                     }
-
                                 } else if (itemStack.getCount() == 1) {
-                                    var9.inventory.setInventorySlotContents(
-                                            i,
-                                            new ItemStack(W_Item.getItemByName("bucket"), 1)
-                                    );
-                                    --num;
+                                    player.inventory.setInventorySlotContents(i, new ItemStack(W_Item.getItemByName("bucket"), 1));
+                                    num--;
                                 }
                             }
 
-                            if(num <= 0) {
+                            if (num <= 0) {
                                 break;
                             }
                         }
@@ -2661,83 +2601,68 @@ public abstract class MCH_EntityAircraft
                 }
             }
         }
-
     }
 
     public void supplyAmmoToOtherAircraft() {
-        float range = this.getAcInfo() != null?this.getAcInfo().ammoSupplyRange:0.0F;
-        if(range > 0.0F) {
-            //todo umm what the figma no fuck you no more free nukes wtf
-            if(!super.world.isRemote && this.getCountOnUpdate() % 40 == 0) {
-                List list = super.world.getEntitiesWithinAABB(MCH_EntityAircraft.class, this.getCollisionBoundingBox().expand((double)range, (double)range, (double)range));
+        float range = this.getAcInfo() != null ? this.getAcInfo().ammoSupplyRange : 0.0F;
+        if (!(range <= 0.0F)) {
+            if (!this.world.isRemote && this.getCountOnUpdate() % 40 == 0) {
+                List<MCH_EntityAircraft> list = this.world
+                        .getEntitiesWithinAABB(MCH_EntityAircraft.class, this.getCollisionBoundingBox().grow(range, range, range));
 
-                for(int i = 0; i < list.size(); ++i) {
-                    MCH_EntityAircraft ac = (MCH_EntityAircraft)list.get(i);
-                    if(!W_Entity.isEqual(this, ac) && ac.canSupply()) {
-                        for(int wid = 0; wid < ac.getWeaponNum(); ++wid) {
+                for (MCH_EntityAircraft ac : list) {
+                    if (!W_Entity.isEqual(this, ac) && ac.canSupply()) {
+                        for (int wid = 0; wid < ac.getWeaponNum(); wid++) {
                             MCH_WeaponSet ws = ac.getWeapon(wid);
                             int num = ws.getRestAllAmmoNum() + ws.getAmmoNum();
-                            if(num < ws.getAllAmmoNum()) {
+                            if (num < ws.getAllAmmoNum()) {
                                 int ammo = ws.getAllAmmoNum() / 10;
-                                if(ammo < 1) {
+                                if (ammo < 1) {
                                     ammo = 1;
                                 }
 
                                 ws.setRestAllAmmoNum(num + ammo);
                                 EntityPlayer player = ac.getEntityByWeaponId(wid);
-                                if(num != ws.getRestAllAmmoNum() + ws.getAmmoNum()) {
-                                    if(ws.getAmmoNum() <= 0) {
+                                if (num != ws.getRestAllAmmoNum() + ws.getAmmoNum()) {
+                                    if (ws.getAmmoNum() <= 0) {
                                         ws.reloadMag();
                                     }
 
-                                    MCH_PacketNotifyAmmoNum.sendAmmoNum(ac, player, wid);
+                                    PacketNotifyAmmoNum.sendAmmoNum(ac, player, wid);
                                 }
                             }
                         }
                     }
                 }
             }
-
         }
     }
 
     public boolean canPlayerSupplyAmmo(EntityPlayer player, int weaponId) {
-        //if on rack (eg: aircraft carrier
-        if(MCH_Lib.getBlockIdY(this, 1, -3) == 0) {
+        if (MCH_Lib.getBlockIdY(this, 1, -3) == 0) {
             return false;
-        } else if(!this.canSupply()) {
+        } else if (!this.canSupply()) {
             return false;
         } else {
             MCH_WeaponSet ws = this.getWeapon(weaponId);
-            if(ws.getRestAllAmmoNum() + ws.getAmmoNum() >= ws.getAllAmmoNum()) {
+            if (ws.getRestAllAmmoNum() + ws.getAmmoNum() >= ws.getAllAmmoNum()) {
                 return false;
             } else {
-                Iterator i$ = ws.getInfo().roundItems.iterator();
-
-                while(i$.hasNext()) {
-                    MCH_WeaponInfo.RoundItem ri = (MCH_WeaponInfo.RoundItem)i$.next();
+                for (MCH_WeaponInfo.RoundItem ri : ws.getInfo().roundItems) {
                     int num = ri.num;
-                    ItemStack[] arr$ = player.inventory.mainInventory.toArray(new ItemStack[0]);
-                    int len$ = arr$.length;
-                    int i$1 = 0;
 
-                    while(true) {
-                        if(i$1 < len$) {
-                            ItemStack itemStack = arr$[i$1];
-                            if (!itemStack.isEmpty() && itemStack.isItemEqual(ri.itemStack)) {
-                                num -= itemStack.getCount();
-                            }
-
-                            if(num > 0) {
-                                ++i$1;
-                                continue;
-                            }
+                    for (ItemStack itemStack : player.inventory.mainInventory) {
+                        if (!itemStack.isEmpty() && itemStack.isItemEqual(ri.itemStack)) {
+                            num -= itemStack.getCount();
                         }
 
-                        if(num > 0) {
-                            return false;
+                        if (num <= 0) {
+                            break;
                         }
-                        break;
+                    }
+
+                    if (num > 0) {
+                        return false;
                     }
                 }
 
@@ -3774,7 +3699,7 @@ public abstract class MCH_EntityAircraft
         if (b) {
             if (this.seatSearchCount > 40) {
                 if (this.world.isRemote) {
-                    MCH_PacketSeatListRequest.requestSeatList(this);
+                    PacketRequestSeatList.requestSeatList(this);
                 } else {
                     this.searchSeat();
                 }
@@ -4563,7 +4488,7 @@ public abstract class MCH_EntityAircraft
         this.cs_planeAutoThrottleDown = MCH_Config.AutoThrottleDownPlane.prmBool;
         this.cs_tankAutoThrottleDown = MCH_Config.AutoThrottleDownTank.prmBool;
         this.camera.setShaderSupport(seatId, W_EntityRenderer.isShaderSupport());
-        MCH_PacketNotifyClientSetting.send();
+        PacketClientSettingsSync.send();
     }
 
     @Override
@@ -4779,7 +4704,13 @@ public abstract class MCH_EntityAircraft
                 MCH_WeaponSet ws = this.getCurrentWeapon(entity);
                 ws.onSwitchWeapon(this.world.isRemote, this.isInfinityAmmo(entity));
                 if (!this.world.isRemote) {
-                    MCH_PacketNotifyWeaponID.send(this, sid, id, ws.getAmmoNum(), ws.getRestAllAmmoNum());
+                    new PacketSyncWeapon(
+                            getEntityId(this),
+                            sid,
+                            id,
+                            (short) ws.getAmmoNum(),
+                            (short) ws.getRestAllAmmoNum()
+                    ).sendPacketToAllAround(world, posX, posY, posZ, 150);
                 }
             }
         }
@@ -4808,7 +4739,6 @@ public abstract class MCH_EntityAircraft
         }
     }
 
-
     @Nullable
     public MCH_WeaponSet getWeaponByName(String name) {
         for (MCH_WeaponSet ws : this.weapons) {
@@ -4834,7 +4764,6 @@ public abstract class MCH_EntityAircraft
         return -1;
     }
 
-    //TODO marker
     public void reloadAllWeapon() {
         for (int i = 0; i < this.getWeaponNum(); i++) {
             this.getWeapon(i).reloadMag();
@@ -4847,7 +4776,6 @@ public abstract class MCH_EntityAircraft
                 : this.getWeapon(0);
     }
 
-    //TODO marker
     public void initCurrentWeapon(Entity entity) {
         int sid = this.getSeatIdByEntity(entity);
         MCH_Lib.DbgLog(this.world, "initCurrentWeapon:" + W_Entity.getEntityId(entity) + ":%d", sid);
@@ -4857,7 +4785,7 @@ public abstract class MCH_EntityAircraft
                 this.currentWeaponID[sid] = this.getNextWeaponID(entity, 1);
                 this.switchWeapon(entity, this.getCurrentWeaponID(entity));
                 if (this.world.isRemote) {
-                    MCH_PacketIndNotifyAmmoNum.send(this, -1);
+                    PacketIndNotifyAmmoNum.send(this, -1);
                 }
             }
         }
@@ -4871,7 +4799,7 @@ public abstract class MCH_EntityAircraft
         return this.getWeapon(this.getCurrentWeaponID(entity));
     }
 
-    protected MCH_WeaponSet getWeapon(int id) {
+    public MCH_WeaponSet getWeapon(int id) {
         return id >= 0 && this.weapons.length > 0 && id < this.weapons.length ? this.weapons[id] : this.dummyWeapon;
     }
 
@@ -4911,7 +4839,6 @@ public abstract class MCH_EntityAircraft
         return this.useCurrentWeapon(prm);
     }
 
-    //TODO marker
     public boolean useCurrentWeapon(MCH_WeaponParam prm) {
         prm.isInfinity = this.isInfinityAmmo(prm.user);
         if (prm.user != null) {
@@ -5027,7 +4954,6 @@ public abstract class MCH_EntityAircraft
         return this.getCommonStatus(2) || this.supplyAmmoWait > 0;
     }
 
-    //TODO marker
     public int getUsedWeaponStat() {
         if (this.getAcInfo() == null) {
             return 0;
@@ -5074,148 +5000,117 @@ public abstract class MCH_EntityAircraft
     }
 
     public void updateWeapons() {
-        if(this.getAcInfo() != null) {
-            if(this.getAcInfo().getWeaponNum() > 0) {
+        if (this.getAcInfo() != null) {
+            if (this.getAcInfo().getWeaponCount() > 0) {
                 int prevUseWeaponStat = this.useWeaponStat;
-                if(!super.world.isRemote) {
-                    this.useWeaponStat |= this.getUsedWeaponStat();
-                    //TODO: MARKER
-                    //1.7 method below, CHECK to ensure this is properly being parsed (*how it should be) and not SHITTED in.
-                    //this.getDataWatcher().updateObject(24, new Integer(this.useWeaponStat));
+                if (!this.world.isRemote) {
+                    this.useWeaponStat = this.useWeaponStat | this.getUsedWeaponStat();
                     this.dataManager.set(USE_WEAPON, this.useWeaponStat);
                     this.useWeaponStat = 0;
                 } else {
-                    //also 1.7 method:
-                    //this.useWeaponStat = this.getDataWatcher().getWatchableObjectInt(24);
                     this.useWeaponStat = this.dataManager.get(USE_WEAPON);
                 }
 
                 float yaw = MathHelper.wrapDegrees(this.getRotYaw());
                 float pitch = MathHelper.wrapDegrees(this.getRotPitch());
                 int id = 0;
-                int wid = 0;
 
-                while(wid < this.weapons.length) {
+                for (int wid = 0; wid < this.weapons.length; wid++) {
                     MCH_WeaponSet w = this.weapons[wid];
                     boolean isLongDelay = false;
-                    if(w.getFirstWeapon() != null) {
+                    if (w.getFirstWeapon() != null) {
                         isLongDelay = w.isLongDelayWeapon();
                     }
 
                     boolean isSelected = false;
-                    int[] isWpnUsed = this.currentWeaponID;
-                    int wi = isWpnUsed.length;
-                    int entity = 0;
 
-                    while(true) {
-                        if(entity < wi) {
-                            int ep = isWpnUsed[entity];
-                            if(ep != wid) {
-                                ++entity;
-                                continue;
-                            }
-
+                    for (int swid : this.currentWeaponID) {
+                        if (swid == wid) {
                             isSelected = true;
+                            break;
+                        }
+                    }
+
+                    boolean isWpnUsed = false;
+
+                    for (int index = 0; index < w.getWeaponsCount(); index++) {
+                        boolean isPrevUsed = id < 32 && (prevUseWeaponStat & 1 << id) != 0;
+                        boolean isUsed = id < 32 && (this.useWeaponStat & 1 << id) != 0;
+                        if (isLongDelay && isPrevUsed && isUsed) {
+                            isUsed = false;
                         }
 
-                        boolean var16 = false;
-
-                        float ey;
-                        for(wi = 0; wi < w.getWeaponNum(); ++wi) {
-                            boolean var18 = id < 32 && (prevUseWeaponStat & 1 << id) != 0;
-                            boolean var20 = id < 32 && (this.useWeaponStat & 1 << id) != 0;
-                            if(isLongDelay && var18 && var20) {
-                                var20 = false;
+                        isWpnUsed |= isUsed;
+                        if (!isPrevUsed && isUsed) {
+                            float recoil = w.getInfo().recoil;
+                            if (recoil > 0.0F) {
+                                this.recoilCount = 30;
+                                this.recoilValue = recoil;
+                                this.recoilYaw = w.rotationYaw;
                             }
-
-                            var16 |= var20;
-                            if(!var18 && var20) {
-                                ey = w.getInfo().recoil;
-                                if(ey > 0.0F) {
-                                    this.recoilCount = 30;
-                                    this.recoilValue = ey;
-                                    this.recoilYaw = w.rotationYaw;
-                                }
-                            }
-
-                            if(super.world.isRemote && var20) {
-                                Vec3d var21 = MCH_Lib.RotVec3(0.0D, 0.0D, -1.0D, -w.rotationYaw - yaw, -w.rotationPitch);
-                                Vec3d targetYaw = w.getCurrentWeapon().getShotPos(this);
-                                this.spawnParticleMuzzleFlash(super.world, w.getInfo(), super.posX + targetYaw.x, super.posY + targetYaw.y, super.posZ + targetYaw.z, var21);
-                            }
-
-                            w.updateWeapon(this, var20, wi);
-                            ++id;
                         }
 
-                        w.update(this, isSelected, var16);
-                        MCH_AircraftInfo.Weapon var17 = this.getAcInfo().getWeaponById(wid);
-                        if(var17 != null && !this.isDestroyed()) {
-                            Entity var19 = this.getEntityBySeatId(this.getWeaponSeatID(this.getWeaponInfoById(wid), var17));
-                            if(var17.canUsePilot && !(var19 instanceof EntityPlayer) && !(var19 instanceof MCH_EntityGunner) ) { //
-                                var19 = this.getEntityBySeatId(0);
+                        if (this.world.isRemote && isUsed) {
+                            Vec3d wrv = MCH_Lib.RotVec3(0.0, 0.0, -1.0, -w.rotationYaw - yaw, -w.rotationPitch);
+                            Vec3d spv = w.getCurrentWeapon().getShotPos(this);
+                            this.spawnParticleMuzzleFlash(this.world, w.getInfo(), this.posX + spv.x, this.posY + spv.y, this.posZ + spv.z, wrv);
+                        }
+
+                        w.updateWeapon(this, isUsed, index);
+                        id++;
+                    }
+
+                    w.update(this, isSelected, isWpnUsed);
+                    MCH_AircraftInfo.Weapon wi = this.getAcInfo().getWeaponById(wid);
+                    if (wi != null && !this.isDestroyed()) {
+                        Entity entity = this.getEntityBySeatId(this.getWeaponSeatID(this.getWeaponInfoById(wid), wi));
+                        if (wi.canUsePilot && !(entity instanceof EntityPlayer) && !(entity instanceof MCH_EntityGunner)) {
+                            entity = this.getEntityBySeatId(0);
+                        }
+
+                        if (!(entity instanceof EntityPlayer) && !(entity instanceof MCH_EntityGunner)) {
+                            w.rotationTurretYaw = this.getLastRiderYaw() - this.getRotYaw();
+                            if (this.getTowedChainEntity() != null || this.getRidingEntity() != null) {
+                                w.rotationYaw = 0.0F;
                             }
-
-
-
-
-                            if(var19 instanceof EntityPlayer || var19 instanceof MCH_EntityGunner) {
-                                float var22;
-                                if((int)var17.minYaw != 0 || (int)var17.maxYaw != 0) {
-                                    var22 = var17.turret?MathHelper.wrapDegrees(this.getLastRiderYaw()) - yaw:0.0F;
-                                    ey = MathHelper.wrapDegrees(var19.rotationYaw - yaw - var17.defaultYaw - var22);
-                                    if(Math.abs((int)var17.minYaw) < 360 && Math.abs((int)var17.maxYaw) < 360) {
-                                        float var23 = MCH_Lib.RNG(ey, var17.minYaw, var17.maxYaw);
-                                        float wy = w.rotationYaw - var17.defaultYaw - var22;
-                                        if(var23 < wy) {
-                                            if(wy - var23 > 15.0F) {
-                                                wy -= 15.0F;
-                                            } else {
-                                                wy = var23;
-                                            }
-                                        } else if(var23 > wy) {
-                                            if(var23 - wy > 15.0F) {
-                                                wy += 15.0F;
-                                            } else {
-                                                wy = var23;
-                                            }
+                        } else {
+                            if ((int) wi.minYaw != 0 || (int) wi.maxYaw != 0) {
+                                float ty = wi.turret ? MathHelper.wrapDegrees(this.getLastRiderYaw()) - yaw : 0.0F;
+                                float ey = MathHelper.wrapDegrees(entity.rotationYaw - yaw - wi.defaultYaw - ty);
+                                if (Math.abs((int) wi.minYaw) < 360 && Math.abs((int) wi.maxYaw) < 360) {
+                                    float targetYaw = MCH_Lib.RNG(ey, wi.minYaw, wi.maxYaw);
+                                    float wy = w.rotationYaw - wi.defaultYaw - ty;
+                                    if (targetYaw < wy) {
+                                        if (wy - targetYaw > 15.0F) {
+                                            wy -= 15.0F;
+                                        } else {
+                                            wy = targetYaw;
                                         }
-
-                                        w.rotationYaw = wy + var17.defaultYaw + var22;
-                                    } else {
-                                        w.rotationYaw = ey + var22;
+                                    } else if (targetYaw > wy) {
+                                        if (targetYaw - wy > 15.0F) {
+                                            wy += 15.0F;
+                                        } else {
+                                            wy = targetYaw;
+                                        }
                                     }
-                                }
 
-                                var22 = MathHelper.wrapDegrees(var19.rotationPitch - pitch);
-                                w.rotationPitch = MCH_Lib.RNG(var22, var17.minPitch, var17.maxPitch);
-                                w.rotationTurretYaw = 0.0F;
-                            } else {
-                                w.rotationTurretYaw = this.getLastRiderYaw() - this.getRotYaw();
-                                if(this.getRidingEntity() != null) {
-                                    w.rotationYaw = 0.0F;
+                                    w.rotationYaw = wy + wi.defaultYaw + ty;
+                                } else {
+                                    w.rotationYaw = ey + ty;
                                 }
                             }
+
+                            float ep = MathHelper.wrapDegrees(entity.rotationPitch - pitch);
+                            w.rotationPitch = MCH_Lib.RNG(ep, wi.minPitch, wi.maxPitch);
+                            w.rotationTurretYaw = 0.0F;
                         }
-
-                        //if (!(entity instanceof EntityPlayer) && !(entity instanceof mcheli.mob.MCH_EntityGunner)) {
-                        ///* 5064 */             w.rotationTurretYaw = getLastRiderYaw() - getRotYaw();
-                        ///* 5065 */             if (this.ridingEntity != null) {
-                        ///* 5066 */               w.rotationYaw = 0.0F;
-                        ///*      */             }
-                        ///*      */           } else {
-                        //this is the worst fucking code i have ever dealt with
-
-                        ++wid;
-                        break;
                     }
                 }
 
                 this.updateWeaponBay();
-                if(this.hitStatus > 0) {
-                    --this.hitStatus;
+                if (this.hitStatus > 0) {
+                    this.hitStatus--;
                 }
-
             }
         }
     }

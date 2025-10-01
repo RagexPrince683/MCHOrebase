@@ -63,9 +63,4 @@ public class W_SoundUpdater {
         }
     }
 
-    public void _updateSoundLocation(Entity entityListener, Entity entity) {
-        if (this.isValidSound()) {
-            this.es.setPosition(entity);
-        }
-    }
 }

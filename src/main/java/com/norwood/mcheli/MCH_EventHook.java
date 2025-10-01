@@ -5,6 +5,7 @@ import com.norwood.mcheli.aircraft.MCH_EntitySeat;
 import com.norwood.mcheli.aircraft.MCH_ItemAircraft;
 import com.norwood.mcheli.chain.MCH_ItemChain;
 import com.norwood.mcheli.command.MCH_Command;
+import com.norwood.mcheli.networking.packet.PacketSyncServerSettings;
 import com.norwood.mcheli.weapon.MCH_EntityBaseBullet;
 import com.norwood.mcheli.wrapper.W_Entity;
 import com.norwood.mcheli.wrapper.W_EntityPlayer;
@@ -54,7 +55,7 @@ public class MCH_EventHook extends W_EventHook {
 
             if (!entity.world.isRemote && entity instanceof EntityPlayerMP) {
                 MCH_Lib.DbgLog(false, "EntityJoinWorldEvent: " + entity);
-                MCH_PacketNotifyServerSettings.send((EntityPlayerMP) entity);
+                PacketSyncServerSettings.send((EntityPlayerMP) entity);
             }
         }
     }
@@ -139,6 +140,9 @@ public class MCH_EventHook extends W_EventHook {
     public MCH_EntityAircraft getRiddenAircraft(Entity entity) {
         MCH_EntityAircraft ac = null;
         Entity ridden = entity.getRidingEntity();
+        if(ridden == null){
+            return null;
+        }
         if (ridden instanceof MCH_EntityAircraft) {
             ac = (MCH_EntityAircraft) ridden;
         } else if (ridden instanceof MCH_EntitySeat) {

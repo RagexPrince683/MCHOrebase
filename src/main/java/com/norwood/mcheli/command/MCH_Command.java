@@ -3,10 +3,12 @@ package com.norwood.mcheli.command;
 import com.google.gson.JsonParseException;
 import com.norwood.mcheli.MCH_Config;
 import com.norwood.mcheli.MCH_MOD;
-import com.norwood.mcheli.MCH_PacketNotifyServerSettings;
+import com.norwood.mcheli.Tags;
 import com.norwood.mcheli.helper.MCH_Utils;
-import com.norwood.mcheli.multiplay.MCH_MultiplayPacketHandler;
-import com.norwood.mcheli.multiplay.MCH_PacketIndClient;
+import com.norwood.mcheli.multiplay.MultiplayerHandler;
+import com.norwood.mcheli.networking.packet.PacketHandleCommand;
+import com.norwood.mcheli.networking.packet.PacketSyncServerSettings;
+import com.norwood.mcheli.networking.packet.PacketTitle;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.command.*;
@@ -96,7 +98,7 @@ public class MCH_Command extends CommandBase {
     }
 
     public @NotNull String getName() {
-        return "mcheli";
+        return Tags.MODID;
     }
 
     public boolean canCommandSenderUseCommand(ICommandSender player) {
@@ -107,136 +109,109 @@ public class MCH_Command extends CommandBase {
         return "commands.com.norwood.mcheli.usage";
     }
 
+    @Override
     public void execute(@NotNull MinecraftServer server, @NotNull ICommandSender sender, String @NotNull [] prm) throws CommandException {
-        if (MCH_Config.EnableCommand.prmBool) {
-            if (!checkCommandPermission(server, sender, prm[0])) {
-                TextComponentTranslation c = new TextComponentTranslation("commands.generic.permission");
-                c.getStyle().setColor(TextFormatting.RED);
-                sender.sendMessage(c);
-            } else {
-                if (prm[0].equalsIgnoreCase("sendss")) {
-                    if (prm.length != 2) {
-                        throw new CommandException("Parameter error! : /mcheli sendss playerName");
-                    }
+        if (!MCH_Config.EnableCommand.prmBool) return;
+        if (prm.length == 0) throw new CommandException("Missing subcommand. Use /mcheli list");
 
-                    EntityPlayerMP player = getPlayer(server, sender, prm[1]);
-                    MCH_PacketIndClient.send(player, 1, prm[1]);
-                } else if (prm[0].equalsIgnoreCase("modlist")) {
-                    if (prm.length < 2) {
-                        throw new CommandException("Parameter error! : /mcheli modlist playerName");
-                    }
+        String subcommand = prm[0].toLowerCase(Locale.ROOT);
+        if (!checkCommandPermission(server, sender, subcommand)) {
+            TextComponentTranslation c = new TextComponentTranslation("commands.generic.permission");
+            c.getStyle().setColor(TextFormatting.RED);
+            sender.sendMessage(c);
+            return;
+        }
 
-                    EntityPlayerMP reqPlayer = sender instanceof EntityPlayerMP ? (EntityPlayerMP) sender : null;
-
-                    for (int i = 1; i < prm.length; i++) {
-                        EntityPlayerMP player = getPlayer(server, sender, prm[i]);
-                        MCH_PacketIndClient.send(player, 2, "" + MCH_MultiplayPacketHandler.getPlayerInfoId(reqPlayer));
-                    }
-                } else if (prm[0].equalsIgnoreCase("reconfig")) {
-                    if (prm.length != 1) {
-                        throw new CommandException("Parameter error! : /mcheli reconfig");
-                    }
-
-                    MCH_MOD.proxy.reconfig();
-                    sender.getEntityWorld();
-                    if (!sender.getEntityWorld().isRemote) {
-                        MCH_PacketNotifyServerSettings.sendAll();
-                    }
-
-                    if (MCH_MOD.proxy.isSinglePlayer()) {
-                        sender.sendMessage(new TextComponentString("Reload com.norwood.mcheli.cfg"));
-                    } else {
-                        sender.sendMessage(new TextComponentString("Reload server side com.norwood.mcheli.cfg"));
-                    }
-                } else if (prm[0].equalsIgnoreCase("title")) {
-                    if (prm.length < 4) {
-                        throw new WrongUsageException("Parameter error! : /mcheli title time[1~180] position[0~4] messege[JSON format]");
-                    }
-
-                    String s = buildString(prm, 3);
-                    int showTime = Integer.parseInt(prm[1]);
-                    if (showTime < 1) {
-                        showTime = 1;
-                    }
-
-                    if (showTime > 180) {
-                        showTime = 180;
-                    }
-
-                    int pos = Integer.parseInt(prm[2]);
-                    if (pos < 0) {
-                        pos = 0;
-                    }
-
-                    if (pos > 5) {
-                        pos = 5;
-                    }
-
-                    try {
-                        ITextComponent ichatcomponent = Serializer.jsonToComponent(s);
-                        MCH_PacketTitle.send(ichatcomponent, 20 * showTime, pos);
-                    } catch (JsonParseException var9) {
-                        Throwable throwable = ExceptionUtils.getRootCause(var9);
-                        throw new SyntaxErrorException("com.norwood.mcheli.title.jsonException", throwable == null ? "" : throwable.getMessage());
-                    }
-                } else if (prm[0].equalsIgnoreCase("fill")) {
-                    this.executeFill(sender, prm);
-                } else if (prm[0].equalsIgnoreCase("status")) {
-                    this.executeStatus(sender, prm);
-                } else if (prm[0].equalsIgnoreCase("killentity")) {
-                    this.executeKillEntity(sender, prm);
-                } else if (prm[0].equalsIgnoreCase("removeentity")) {
-                    this.executeRemoveEntity(sender, prm);
-                } else if (prm[0].equalsIgnoreCase("attackentity")) {
-                    this.executeAttackEntity(sender, prm);
-                } else if (prm[0].equalsIgnoreCase("showboundingbox")) {
-                    if (prm.length != 2) {
-                        throw new CommandException("Parameter error! : /mcheli showboundingbox true or false");
-                    }
-
-                    if (!parseBoolean(prm[1])) {
-                        MCH_Config.EnableDebugBoundingBox.prmBool = false;
-                        MCH_PacketNotifyServerSettings.sendAll();
-                        sender.sendMessage(new TextComponentString("Disabled bounding box"));
-                    } else {
-                        MCH_Config.EnableDebugBoundingBox.prmBool = true;
-                        MCH_PacketNotifyServerSettings.sendAll();
-                        sender.sendMessage(new TextComponentString("Enabled bounding box [F3 + b]"));
-                    }
-
-                    MCH_MOD.proxy.save();
-                } else if (prm[0].equalsIgnoreCase("list")) {
-                    StringBuilder msg = new StringBuilder();
-
-                    for (String sx : ALL_COMMAND) {
-                        msg.append(sx).append(", ");
-                    }
-
-                    sender.sendMessage(new TextComponentString("/mcheli command list : " + msg));
-                } else {
-                    if (!prm[0].equalsIgnoreCase("delayhitbox")) {
-                        throw new CommandException("Unknown mcheli command. please type /mcheli list");
-                    }
-
-                    if (prm.length == 1) {
-                        sender.sendMessage(new TextComponentString("Current delay of hitbox = " + MCH_Config.HitBoxDelayTick.prmInt + " [0 ~ 50]"));
-                    } else {
-                        if (prm.length != 2) {
-                            throw new CommandException("Parameter error! : /mcheli delayhitbox 0 ~ 50");
-                        }
-
-                        MCH_Config.HitBoxDelayTick.prmInt = parseInt(prm[1]);
-                        if (MCH_Config.HitBoxDelayTick.prmInt > 50) {
-                            MCH_Config.HitBoxDelayTick.prmInt = 50;
-                        }
-
-                        MCH_MOD.proxy.save();
-                        sender.sendMessage(new TextComponentString("Current delay of hitbox = " + MCH_Config.HitBoxDelayTick.prmInt + " [0 ~ 50]"));
-                    }
-                }
-            }
+        switch (subcommand) {
+            case "sendss" -> handleSendScreenshot(server, sender, prm);
+            case "modlist" -> handleModList(server, sender, prm);
+            case "reconfig" -> handleReconfig(sender, prm);
+            case "title" -> handleTitle(prm);
+            case "fill" -> executeFill(sender, prm);
+            case "status" -> executeStatus(sender, prm);
+            case "killentity" -> executeKillEntity(sender, prm);
+            case "removeentity" -> executeRemoveEntity(sender, prm);
+            case "attackentity" -> executeAttackEntity(sender, prm);
+            case "showboundingbox" -> handleShowBoundingBox(sender, prm);
+            case "list" -> handleList(sender);
+            case "delayhitbox" -> handleDelayHitbox(sender, prm);
+            default -> throw new CommandException("Unknown mcheli command. Please type /mcheli list");
         }
     }
+
+    private void handleSendScreenshot(MinecraftServer server, ICommandSender sender, String[] prm) throws CommandException {
+        if (prm.length != 2) throw new CommandException("Usage: /mcheli sendss playerName");
+        EntityPlayerMP player = getPlayer(server, sender, prm[1]);
+        PacketHandleCommand.send(player, PacketHandleCommand.CommandAction.NONE, prm[1]);
+    }
+
+    private void handleModList(MinecraftServer server, ICommandSender sender, String[] prm) throws CommandException {
+        if (prm.length < 2) throw new CommandException("Usage: /mcheli modlist playerName...");
+        EntityPlayerMP reqPlayer = sender instanceof EntityPlayerMP ? (EntityPlayerMP) sender : null;
+        for (int i = 1; i < prm.length; i++) {
+            EntityPlayerMP player = getPlayer(server, sender, prm[i]);
+            PacketHandleCommand.send(player, PacketHandleCommand.CommandAction.REQUEST_MOD_INFO, "" + MultiplayerHandler.getPlayerInfoId(reqPlayer));
+        }
+    }
+
+    private void handleReconfig(ICommandSender sender, String[] prm) throws CommandException {
+        if (prm.length != 1) throw new CommandException("Usage: /mcheli reconfig");
+        MCH_MOD.proxy.reconfig();
+        if (!sender.getEntityWorld().isRemote) {
+            PacketSyncServerSettings.sendAll();
+        }
+        String msg = MCH_MOD.proxy.isSinglePlayer()
+                ? "Reload com.norwood.mcheli.cfg"
+                : "Reload server side com.norwood.mcheli.cfg";
+        sender.sendMessage(new TextComponentString(msg));
+    }
+
+    private void handleTitle(String[] prm) throws CommandException {
+        if (prm.length < 4)
+            throw new WrongUsageException("Usage: /mcheli title time[1~180] position[0~4] message[JSON]");
+        String s = buildString(prm, 3);
+
+        int showTime = Math.max(1, Math.min(180, Integer.parseInt(prm[1])));
+        int pos = Math.max(0, Math.min(5, Integer.parseInt(prm[2])));
+
+        try {
+            ITextComponent ichatcomponent = Serializer.jsonToComponent(s);
+            new PacketTitle(
+                    Serializer.componentToJson(ichatcomponent),
+                    20 * showTime,
+                    pos
+            ).sendToClients();
+        } catch (JsonParseException ex) {
+            Throwable root = ExceptionUtils.getRootCause(ex);
+            throw new SyntaxErrorException("com.norwood.mcheli.title.jsonException", root == null ? "" : root.getMessage());
+        }
+    }
+
+    private void handleShowBoundingBox(ICommandSender sender, String[] prm) throws CommandException {
+        if (prm.length != 2) throw new CommandException("Usage: /mcheli showboundingbox true|false");
+        boolean enable = parseBoolean(prm[1]);
+        MCH_Config.EnableDebugBoundingBox.prmBool = enable;
+        PacketSyncServerSettings.sendAll();
+        sender.sendMessage(new TextComponentString(enable ? "Enabled bounding box [F3 + b]" : "Disabled bounding box"));
+        MCH_MOD.proxy.save();
+    }
+
+    private void handleList(ICommandSender sender) {
+        String msg = String.join(", ", ALL_COMMAND);
+        sender.sendMessage(new TextComponentString("/mcheli command list : " + msg));
+    }
+
+    private void handleDelayHitbox(ICommandSender sender, String[] prm) throws CommandException {
+        if (prm.length == 1) {
+            sender.sendMessage(new TextComponentString("Current delay of hitbox = " + MCH_Config.HitBoxDelayTick.prmInt + " [0 ~ 50]"));
+            return;
+        }
+        if (prm.length != 2) throw new CommandException("Usage: /mcheli delayhitbox 0 ~ 50");
+        MCH_Config.HitBoxDelayTick.prmInt = Math.min(50, parseInt(prm[1]));
+        MCH_MOD.proxy.save();
+        sender.sendMessage(new TextComponentString("Current delay of hitbox = " + MCH_Config.HitBoxDelayTick.prmInt + " [0 ~ 50]"));
+    }
+
 
     private void executeAttackEntity(ICommandSender sender, String[] args) throws WrongUsageException {
         if (args.length < 3) {
@@ -250,50 +225,24 @@ public class MCH_Command extends CommandBase {
             DamageSource ds = DamageSource.GENERIC;
             if (!damageName.isEmpty()) {
                 switch (damageName) {
-                    case "player":
+                    case "player" -> {
                         if (sender instanceof EntityPlayer) {
                             ds = DamageSource.causePlayerDamage((EntityPlayer) sender);
                         }
-                        break;
-                    case "anvil":
-                        ds = DamageSource.ANVIL;
-                        break;
-                    case "cactus":
-                        ds = DamageSource.CACTUS;
-                        break;
-                    case "drown":
-                        ds = DamageSource.DROWN;
-                        break;
-                    case "fall":
-                        ds = DamageSource.FALL;
-                        break;
-                    case "fallingblock":
-                        ds = DamageSource.FALLING_BLOCK;
-                        break;
-                    case "generic":
-                        ds = DamageSource.GENERIC;
-                        break;
-                    case "infire":
-                        ds = DamageSource.IN_FIRE;
-                        break;
-                    case "inwall":
-                        ds = DamageSource.IN_WALL;
-                        break;
-                    case "lava":
-                        ds = DamageSource.LAVA;
-                        break;
-                    case "magic":
-                        ds = DamageSource.MAGIC;
-                        break;
-                    case "onfire":
-                        ds = DamageSource.ON_FIRE;
-                        break;
-                    case "starve":
-                        ds = DamageSource.STARVE;
-                        break;
-                    case "wither":
-                        ds = DamageSource.WITHER;
-                        break;
+                    }
+                    case "anvil" -> ds = DamageSource.ANVIL;
+                    case "cactus" -> ds = DamageSource.CACTUS;
+                    case "drown" -> ds = DamageSource.DROWN;
+                    case "fall" -> ds = DamageSource.FALL;
+                    case "fallingblock" -> ds = DamageSource.FALLING_BLOCK;
+                    case "generic" -> ds = DamageSource.GENERIC;
+                    case "infire" -> ds = DamageSource.IN_FIRE;
+                    case "inwall" -> ds = DamageSource.IN_WALL;
+                    case "lava" -> ds = DamageSource.LAVA;
+                    case "magic" -> ds = DamageSource.MAGIC;
+                    case "onfire" -> ds = DamageSource.ON_FIRE;
+                    case "starve" -> ds = DamageSource.STARVE;
+                    case "wither" -> ds = DamageSource.WITHER;
                 }
             }
 

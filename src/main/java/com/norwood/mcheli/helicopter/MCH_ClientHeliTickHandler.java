@@ -7,9 +7,11 @@ import com.norwood.mcheli.MCH_ViewEntityDummy;
 import com.norwood.mcheli.aircraft.MCH_AircraftClientTickHandler;
 import com.norwood.mcheli.aircraft.MCH_EntitySeat;
 import com.norwood.mcheli.aircraft.MCH_SeatInfo;
+import com.norwood.mcheli.networking.data.DataPlayerControlAircraft;
+import com.norwood.mcheli.networking.data.DataPlayerControlVehicle;
+import com.norwood.mcheli.networking.packet.control.PacketPlayerControlHeli;
 import com.norwood.mcheli.uav.MCH_EntityUavStation;
 import com.norwood.mcheli.wrapper.W_Entity;
-import com.norwood.mcheli.wrapper.W_Network;
 import com.norwood.mcheli.wrapper.W_Reflection;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
@@ -135,11 +137,11 @@ public class MCH_ClientHeliTickHandler extends MCH_AircraftClientTickHandler {
     }
 
     protected void playerControlInGUI(EntityPlayer player, MCH_EntityHeli heli, boolean isPilot) {
-        this.commonPlayerControlInGUI(player, heli, isPilot, new MCH_HeliPacketPlayerControl());
+        this.commonPlayerControlInGUI(player, heli, isPilot, new PacketPlayerControlHeli(new DataPlayerControlVehicle()));
     }
 
     protected void playerControl(EntityPlayer player, MCH_EntityHeli heli, boolean isPilot) {
-        MCH_HeliPacketPlayerControl pc = new MCH_HeliPacketPlayerControl();
+        var pc = new DataPlayerControlVehicle();
         boolean send;
         send = this.commonPlayerControl(player, heli, isPilot, pc);
         if (isPilot) {
@@ -151,10 +153,10 @@ public class MCH_ClientHeliTickHandler extends MCH_AircraftClientTickHandler {
                 } else if (heli.canSwitchFoldBlades()) {
                     if (heli.isFoldBlades()) {
                         heli.unfoldBlades();
-                        pc.switchFold = 0;
+                        pc.setBladeStatus(DataPlayerControlVehicle.BladeStatus.UNFOLD);
                     } else {
                         heli.foldBlades();
-                        pc.switchFold = 1;
+                        pc.setBladeStatus(DataPlayerControlVehicle.BladeStatus.FOLD);
                     }
 
                     send = true;
@@ -166,7 +168,7 @@ public class MCH_ClientHeliTickHandler extends MCH_AircraftClientTickHandler {
 
             if (this.KeySwitchHovering.isKeyDown()) {
                 if (heli.canSwitchHoveringMode()) {
-                    pc.switchMode = (byte) (heli.isHoveringMode() ? 2 : 3);
+                    pc.switchMode = (heli.isHoveringMode() ? DataPlayerControlAircraft.ModeSwitch.HOVERING_OFF : DataPlayerControlAircraft.ModeSwitch.HOVERING_ON);
                     heli.switchHoveringMode(!heli.isHoveringMode());
                     send = true;
                 } else {
@@ -174,7 +176,7 @@ public class MCH_ClientHeliTickHandler extends MCH_AircraftClientTickHandler {
                 }
             } else if (this.KeySwitchMode.isKeyDown()) {
                 if (heli.canSwitchGunnerMode()) {
-                    pc.switchMode = (byte) (heli.getIsGunnerMode(player) ? 0 : 1);
+                    pc.setSwitchMode(heli.getIsGunnerMode(player) ? DataPlayerControlAircraft.ModeSwitch.GUNNER_OFF : DataPlayerControlAircraft.ModeSwitch.GUNNER_ON);
                     heli.switchGunnerMode(!heli.getIsGunnerMode(player));
                     send = true;
                 } else {
@@ -197,10 +199,11 @@ public class MCH_ClientHeliTickHandler extends MCH_AircraftClientTickHandler {
                 playSound("zoom", 0.5F, 1.0F);
             } else if (isPilot && heli.getAcInfo().haveHatch()) {
                 if (heli.canFoldHatch()) {
-                    pc.switchHatch = 2;
+                    pc.setSwitchHatch(DataPlayerControlAircraft.HatchSwitch.FOLD);
                     send = true;
                 } else if (heli.canUnfoldHatch()) {
-                    pc.switchHatch = 1;
+
+                    pc.setSwitchHatch(DataPlayerControlAircraft.HatchSwitch.UNFOLD);
                     send = true;
                 } else {
                     playSoundNG();
@@ -209,7 +212,7 @@ public class MCH_ClientHeliTickHandler extends MCH_AircraftClientTickHandler {
         }
 
         if (send) {
-            W_Network.sendToServer(pc);
+            new PacketPlayerControlHeli(pc).sendToServer();
         }
     }
 }

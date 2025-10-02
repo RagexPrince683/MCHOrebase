@@ -6,6 +6,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumBlockRenderType;
+import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.EnumSkyBlock;
@@ -40,11 +41,10 @@ public class BlockLight extends Block {
         return ItemStack.EMPTY;
     }
 
-    @Override
-    public void getDrops(List<ItemStack> drops, IBlockAccess world, BlockPos pos,
-                         IBlockState state, int fortune) {
-        drops.clear(); // never drop anything
+    public void getDrops(NonNullList<ItemStack> drops, IBlockAccess world, BlockPos pos, IBlockState state, int fortune) {
+        // no drops
     }
+
 
     @Override
     public boolean canDropFromExplosion(Explosion explosion) {
@@ -78,10 +78,7 @@ public class BlockLight extends Block {
         return true;
     }
 
-    @Override
-    public void onBlockAdded(World world, int x, int y, int z) {
 
-    }
 
     // Collision
     @Nullable

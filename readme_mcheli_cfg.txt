@@ -1,13 +1,13 @@
 MC Heli MOD [SSP/SMP]
 
-com.norwood.mcheli.cfg �̊e���ڂɂ��Đ������L�ڂ���B
+com.ragex.mcheli.cfg �̊e���ڂɂ��Đ������L�ڂ���B
 �}���`�̏ꍇ�A�����̍��ڂ̓T�[�o���̐ݒ肪�D�悳���B
 
 �������̍��ڂ͋@�̂�R�L�[�ŊJ���⋋��ʂ�MOD Option����N�������܂ܕύX�\�ł���B
 �Ώۂ̐ݒ�ɂ́��}�[�N��t�����B
 
 �܂��A�V���O���v���C���}���`��OP����������΁A/mcheli reconfig �R�}���h�ŋN�������܂�
-com.norwood.mcheli.cfg ���ēǂݍ��݂ł���B
+com.ragex.mcheli.cfg ���ēǂݍ��݂ł���B
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -228,7 +228,7 @@ DisplayEntityMarker = true
 	�}���`�Ő����������ꍇ�Ɏg�p����B
 	��MOD option > Render Settings > Show HUD Third Person
 	���ӁF�}���`�v���C����MOD option��ʂ���ύX���Ă����f����Ȃ��B
-	���f����ɂ̓T�[�o����com.norwood.mcheli.cfg��ύX���� /mcheli reconfig �R�}���h���g�p���邱�ƁB
+	���f����ɂ̓T�[�o����com.ragex.mcheli.cfg��ύX���� /mcheli reconfig �R�}���h���g�p���邱�ƁB
 EntityMarkerSize = 10.00
 	�����}�[�N/�X�|�b�g�}�[�N�̕\���T�C�Y�B
 	��MOD option > Render Settings > Entity Marker Size

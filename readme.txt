@@ -40,13 +40,13 @@ Item ID / Block ID
 Command
 	�w��MOD�p�̃R�}���h�� /mcheli ??? �p�����[�^..  �̌`���ł��B
 	�V���O���v���C���A�}���`��OP����������ΑS�R�}���h���g�p�ł��܂��B
-	OP�łȂ��Ă��A�T�[�o���� com.norwood.mcheli.cfg �� CommandPermission �ŃR�}���h���Ƃɋ����o�����Ƃ��\�ł��B
+	OP�łȂ��Ă��A�T�[�o���� com.ragex.mcheli.cfg �� CommandPermission �ŃR�}���h���Ƃɋ����o�����Ƃ��\�ł��B
 	
 	/mcheli list
 		�R�}���h�̈ꗗ��\�����܂��B
 	
 	/mcheli reconfig
-		�N�������܂� com.norwood.mcheli.cfg�t�@�C����ǂݍ��ݒ����܂��B
+		�N�������܂� com.ragex.mcheli.cfg�t�@�C����ǂݍ��ݒ����܂��B
 		�}���`�̏ꍇ�ꕔ�̐ݒ�̓N���C�A���g�ɂ����f����܂��B
 		�}���`�v���C���̓T�[�o���� mchli.cfg �����ǂݍ��݂��Ȃ����܂���B
 		
@@ -193,7 +193,7 @@ http://www61.atwiki.jp/mcheli/pages/126.html
 		�E�N���G�C�e�B�u�̃v���C���[����������Ɩ��G���e�򖳌���
 		�@�T�o�C�o���̃v���C���[����������ƁAHP20�ŋ@�̂ɑ��U����Ă��镪�̂݌���
 		�E�@�̂ɏ�� Ctrl + C �Ŏ����ˌ���ON/OFF��؂�ւ�����
-		�E�U���͈͂� com.norwood.mcheli.cfg ����ύX�\
+		�E�U���͈͂� com.ragex.mcheli.cfg ����ύX�\
 		�@RangeOfGunner_VsMonster_Horizontal �΃����X�^�[�p ���������̍U���͈�
 		�@RangeOfGunner_VsMonster_Vertical   �΃����X�^�[�p ���������̍U���͈�
 		�@RangeOfGunner_VsPlayer_Horizontal  �Α��`�[���v���C���[�p ���������̍U���͈�
@@ -226,7 +226,7 @@ http://www61.atwiki.jp/mcheli/pages/126.html
 		�E�O���E���[ITV �ǉ�
 		���s��C��
 		�[���킩��~���Ǝ嗃�Ɉ���������s��C��
-		com.norwood.mcheli.cfg�́uBulletBreakableBlocks�v�̓��e���ύX�ł��Ȃ��s��C��
+		com.ragex.mcheli.cfg�́uBulletBreakableBlocks�v�̓��e���ύX�ł��Ȃ��s��C��
 		Throttle Down Tank��ON�ɂ����Ƃ��AGUI�̃X���b�g����������Ȃ��s��C��
 	2016/04/02 Ver.1.0.2
 		NotEnoughItems �𓱓����Ă����ԂŃ}���`��M�L�[�������ƃN���b�V������s��C��
@@ -247,7 +247,7 @@ http://www61.atwiki.jp/mcheli/pages/126.html
 		�ET-84 �I�v���[�gM �ǉ�
 		���R�}���h�ǉ�/�ύX
 		�E�S��OP�������K�v
-		/mcheli reconfig �N�������܂� com.norwood.mcheli.cfg�t�@�C����ǂݍ��ݒ���
+		/mcheli reconfig �N�������܂� com.ragex.mcheli.cfg�t�@�C����ǂݍ��ݒ���
 		/mcheli title ��ʂɑ傫��������\������B�}�C���N���t�g1.8�� title ���ꕔ�ڐA
 		/mcheli fill �w��̈���u���b�N�Ŗ��߂�B�}�C���N���t�g1.8�� fill ���ꕔ�ڐA
 		/mcheli status ���[�h����Ă���G���e�B�e�B����\������
@@ -266,7 +266,7 @@ http://www61.atwiki.jp/mcheli/pages/126.html
 		�E�ԗ��̂ݎˌ����̔����ŋ@�̂��h���@�\��ǉ�
 		�ECtrl + R �܂��� Ctrl + F ��1�ԐȂ�2�ԐȈȍ~��؂�ւ��ł���悤�ɂ���
 		�E�@�e��C�Ƀ}�Y���t���b�V���Ɖ��̃p�[�e�B�N����ǉ�
-		�E�����G�t�F�N�g���o�j���ƑS���قȂ���̂ɕύX(com.norwood.mcheli.cfg �� DefaultExplosionParticle �Ńo�j���ɖ߂���)
+		�E�����G�t�F�N�g���o�j���ƑS���قȂ���̂ɕύX(com.ragex.mcheli.cfg �� DefaultExplosionParticle �Ńo�j���ɖ߂���)
 		�E�@�̂��A�C�e�����������A�R�����ێ�����悤�ύX
 		�E�쓮���������܂ŕ�������悤�ɕύX
 		�E�쓮�����ʒu�ɂ���č��E�ŉ��ʂ��ς��悤�ɕύX
@@ -280,7 +280,7 @@ http://www61.atwiki.jp/mcheli/pages/126.html
 		���@�\�ǉ� �}���`����
 		�E�@�̂��j�󂳂ꂽ���Ɏ��s�����R�}���h���@�̂ɐݒ�ł���悤�ɂ���
 		�E���Ƀv���C���[������Ă鎞�ɒ@���Ă����Ȃ��悤�ɕύX
-		�E�X�|���W�̏�݂̂ŋ@�̂�ݒu�ł���悤�ɂ���ݒ�� com.norwood.mcheli.cfg �ɒǉ�(PlaceableOnSpongeOnly)
+		�E�X�|���W�̏�݂̂ŋ@�̂�ݒu�ł���悤�ɂ���ݒ�� com.ragex.mcheli.cfg �ɒǉ�(PlaceableOnSpongeOnly)
 		�����f����Ҍ���
 		�E�͈͓��̑��̋@�̂𖳏����ŉ񕜂���@�̐ݒ��ǉ� RepairOtherVehicles
 		�E����ł��_���[�W���󂯂Ȃ����ʂ̍�����ݒ�ł���悤�ɂ��� SubmergedDamageHeight
@@ -504,8 +504,8 @@ http://www61.atwiki.jp/mcheli/pages/126.html
 		�͖C : 12.7cm�A���C(2���)�A15.5cm3�A���C�A25mm�O�A���@�e�A46cm3�A���C �ǉ�
 		�퓬�@ : �뎮�͏�퓬�@21�^�A�뎮����ϑ��@�AUS-2�~���s�� �ǉ�
 
-		�w���R�v�^�[�ƌŒ藃�@�ŃX���b�g���������ŉ����邩�Œ肩��com.norwood.mcheli.cfg�ŕύX�ł���@�\�ǉ�
-		�q��@����~�肽�ۂɑ��̃��u���~�낷���ǂ���com.norwood.mcheli.cfg�ŕύX�ł���@�\�ǉ�
+		�w���R�v�^�[�ƌŒ藃�@�ŃX���b�g���������ŉ����邩�Œ肩��com.ragex.mcheli.cfg�ŕύX�ł���@�\�ǉ�
+		�q��@����~�肽�ۂɑ��̃��u���~�낷���ǂ���com.ragex.mcheli.cfg�ŕύX�ł���@�\�ǉ�
 		�X���b�g���̕ω����@�̖��ɐݒ�ł���@�\�ǉ�
 		�@�̂��Ƃɋ@������ύX�ł���@�\�ǉ�
 		�n�C�h��70MPSM�e��ǉ�(���ˌ�A�����̎q�e�ɕ���)

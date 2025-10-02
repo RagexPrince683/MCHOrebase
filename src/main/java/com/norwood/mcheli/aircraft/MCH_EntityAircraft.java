@@ -1711,6 +1711,7 @@ public abstract class MCH_EntityAircraft
         this.prevPosition.put(new Vec3d(this.posX, this.posY, this.posZ));
     }
 
+    //called in onupdate
     private void updateSearchlightBlocks() {
         Set<BlockPos> newLights = new HashSet<>();
 
@@ -1719,9 +1720,9 @@ public abstract class MCH_EntityAircraft
                 MCH_AircraftInfo.SearchLight sl = (MCH_AircraftInfo.SearchLight) o;
                 Vec3d pos = getTransformedPosition(sl.pos);
 
-                BlockPos.MutableBlockPos blockPos = new BlockPos.MutableBlockPos(MathHelper.floor(pos.x),
-                 MathHelper.floor(pos.y),
-                 MathHelper.floor(pos.z));
+                BlockPos blockPos = new BlockPos(MathHelper.floor(pos.x),
+                        MathHelper.floor(pos.y),
+                        MathHelper.floor(pos.z));
 
                 newLights.add(blockPos);
 
@@ -1739,7 +1740,7 @@ public abstract class MCH_EntityAircraft
         for (BlockPos oldPos : activeLights) {
             if (!newLights.contains(oldPos)) {
                 // Only remove if it's still our light block
-                if (world.getBlockState(oldPos) == MCH_MOD.lightBlock) {
+                if (world.getBlockState(oldPos).getBlock() == MCH_MOD.lightBlock) {
                     world.setBlockToAir(oldPos);
                     world.checkLightFor(EnumSkyBlock.BLOCK, oldPos);
                 }

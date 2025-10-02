@@ -54,10 +54,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockPos.PooledMutableBlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.EnumDifficulty;
-import net.minecraft.world.Explosion;
-import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
+import net.minecraft.world.*;
 import net.minecraft.world.border.WorldBorder;
 import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
 import net.minecraftforge.fml.relauncher.Side;
@@ -223,6 +220,8 @@ public abstract class MCH_EntityAircraft
     private double lastCalcLandInDistanceCount;
     private double lastLandInDistance;
     private boolean switchSeat = false;
+    private final Set<BlockPos> activeLights = new HashSet<>();
+
 
     public MCH_EntityAircraft(World world) {
         super(world);
@@ -1581,6 +1580,8 @@ public abstract class MCH_EntityAircraft
             this.destroyAircraft();
         }
 
+        updateSearchlightBlocks();
+
         if (!this.world.isRemote && this.getDespawnCount() > 0) {
             this.setDespawnCount(this.getDespawnCount() - 1);
             if (this.getDespawnCount() <= 1) {
@@ -1710,46 +1711,44 @@ public abstract class MCH_EntityAircraft
         this.prevPosition.put(new Vec3d(this.posX, this.posY, this.posZ));
     }
 
-    //Fixed for you furboy
-//    private void updateSearchlightBlocks() {
-//        Set<BlockPos> newLights = new HashSet<>();
-//
-//        if (!world.isRemote && haveSearchLight() && isSearchLightON()) {
-//            for (Object o : this.getAcInfo().searchLights) {
-//                MCH_AircraftInfo.SearchLight sl = (MCH_AircraftInfo.SearchLight) o;
-//                Vec3d pos = getTransformedPosition(sl.pos);
-//
-//                BlockPos.MutableBlockPos blockPos = new BlockPos.MutableBlockPos(MathHelper.floor(pos.x),
-//                 MathHelper.floor(pos.y),
-//                 MathHelper.floor(pos.z));
-//
-//                newLights.add(blockPos);
-//
-//                // Only place if the spot is pure air
-//                if (world.isAirBlock(blockPos) && world.getBlockState(blockPos).getBlock() != MCH_MOD.lightBlock) {
-//                    //maybe remove world.getBlock(blockPos) != MCH_MOD.lightBlock? idk doesn't seem like a good idea to me.
-//                    world.setBlockState(blockPos, MCH_MOD.lightBlock.getDefaultState(), 0, 2);
-//                    world.checkLightFor(EnumSkyBlock.BLOCK, blockPos);
-//
-//                }
-//                // If it's already our light block, just refresh it in newLights
-//            }
-//        }
-//
-//        // Remove old light blocks that are no longer needed
-//        for (BlockPos.MutableBlockPos oldPos : activeLights) {
-//            if (!newLights.contains(oldPos)) {
-//                // Only remove if it's still our light block
-//                if (world.getBlockState(oldPos) == MCH_MOD.lightBlock) {
-//                    world.setBlockToAir(oldPos);
-//                    world.checkLightFor(EnumSkyBlock.BLOCK, oldPos);
-//                }
-//            }
-//        }
-//
-//        activeLights.clear();
-//        activeLights.addAll(newLights);
-//    }
+    private void updateSearchlightBlocks() {
+        Set<BlockPos> newLights = new HashSet<>();
+
+        if (!world.isRemote && haveSearchLight() && isSearchLightON()) {
+            for (Object o : this.getAcInfo().searchLights) {
+                MCH_AircraftInfo.SearchLight sl = (MCH_AircraftInfo.SearchLight) o;
+                Vec3d pos = getTransformedPosition(sl.pos);
+
+                BlockPos.MutableBlockPos blockPos = new BlockPos.MutableBlockPos(MathHelper.floor(pos.x),
+                 MathHelper.floor(pos.y),
+                 MathHelper.floor(pos.z));
+
+                newLights.add(blockPos);
+
+                // Only place if the spot is pure air
+                if (world.isAirBlock(blockPos) && world.getBlockState(blockPos).getBlock() != MCH_MOD.lightBlock) {
+                    world.setBlockState(blockPos, MCH_MOD.lightBlock.getDefaultState(), 2);
+                    world.checkLightFor(EnumSkyBlock.BLOCK, blockPos);
+                }
+
+                // If it's already our light block, just refresh it in newLights
+            }
+        }
+
+        // Remove old light blocks that are no longer needed
+        for (BlockPos oldPos : activeLights) {
+            if (!newLights.contains(oldPos)) {
+                // Only remove if it's still our light block
+                if (world.getBlockState(oldPos) == MCH_MOD.lightBlock) {
+                    world.setBlockToAir(oldPos);
+                    world.checkLightFor(EnumSkyBlock.BLOCK, oldPos);
+                }
+            }
+        }
+
+        activeLights.clear();
+        activeLights.addAll(newLights);
+    }
 
     private void updateNoCollisionEntities() {
         if (!this.world.isRemote) {
@@ -3737,6 +3736,18 @@ public abstract class MCH_EntityAircraft
     @Override
     public void setDead() {
         this.setDead(false);
+        for (BlockPos coord : activeLights) {
+            IBlockState state = world.getBlockState(coord);
+            if (state.getBlock() == MCH_MOD.lightBlock) {
+                // remove the block (replace with air)
+                world.setBlockToAir(coord);
+                // notify block update (client / render / neighboring blocks)
+                world.notifyBlockUpdate(coord, state, Blocks.AIR.getDefaultState(), 3);
+                // trigger a light recheck
+                world.checkLightFor(EnumSkyBlock.BLOCK, coord);
+            }
+        }
+        activeLights.clear();
     }
 
     public void setDead(boolean dropItems) {

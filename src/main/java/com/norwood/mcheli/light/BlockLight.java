@@ -1,150 +1,111 @@
 package com.norwood.mcheli.light;
 
-//import cpw.mods.fml.relauncher.Side;
-//import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
-//import net.minecraft.client.renderer.texture.IIconRegister;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-//import net.minecraft.util.AxisAlignedBB;
-//import net.minecraft.util.IIcon;
+import net.minecraft.util.EnumBlockRenderType;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.Explosion;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Random;
-//import net.minecraft.world.EnumSkyBlock;
-
 
 public class BlockLight extends Block {
-    //private IIcon icon;
 
     public BlockLight() {
-        super(Material.ROCK); // ensure tanks dont break it
-        this.setLightLevel(1.0F); // Light level 15
+        super(Material.ROCK); // rock so tanks/vehicles don’t break it
+        this.setLightLevel(1.0F); // light level 15
         this.setBlockUnbreakable();
         this.setResistance(6000000F);
         this.setTickRandomly(false);
-        this.setCreativeTab(null);
+        this.setCreativeTab(null); // hidden from creative menu
     }
 
+    // No drops
     @Override
     public int quantityDropped(Random random) {
-        // Always drop 0 items
         return 0;
     }
 
-    //@Override
-    public Item getItemDropped(int meta, Random random, int fortune) {
-        // No item to drop
-        return null;
+    @Nullable
+    @Override
+    public ItemStack getItem(World worldIn, BlockPos pos, IBlockState state) {
+        return ItemStack.EMPTY;
     }
 
-    //@Override
-    public void dropBlockAsItemWithChance(World world, int x, int y, int z,
-                                          int meta, float chance, int fortune) {
-        // Prevent any dropping via this path
-        // (don’t call super)
-    }
-
-    //@Override
-    public void dropBlockAsItem(World world, int x, int y, int z, ItemStack stack) {
-        // Prevent the “player‑break” drop path as well
-    }
-
-    //@Override
-    public void dropXpOnBlockBreak(World world, int x, int y, int z, int amount) {
-        // No XP either
-    }
-
-    //@Override
-    public int getExpDrop(IBlockAccess world, int meta, int fortune) {
-        return 0;  // just in case
+    @Override
+    public void getDrops(List<ItemStack> drops, IBlockAccess world, BlockPos pos,
+                         IBlockState state, int fortune) {
+        drops.clear(); // never drop anything
     }
 
     @Override
     public boolean canDropFromExplosion(Explosion explosion) {
-        // Prevent explosion drops
         return false;
     }
 
-    //@Override
-    public int getRenderType() {
-        return -1;
+    // Rendering / model
+    @Override
+    public EnumBlockRenderType getRenderType(IBlockState state) {
+        return EnumBlockRenderType.INVISIBLE;
     }
 
-    //@Override
-    public boolean isOpaqueCube() {
+    @Override
+    public boolean isOpaqueCube(IBlockState state) {
         return false;
     }
 
-    //@Override
-    public boolean renderAsNormalBlock() {
+    @Override
+    public boolean isFullCube(IBlockState state) {
         return false;
     }
 
-    //@Override
-    //public boolean canCollideCheck(int meta, boolean hitIfLiquid) {
-    //    return false;
-    //}
-
-    //@Override
-    public boolean isReplaceable(IBlockAccess world, int x, int y, int z) {
+    // Replaceable / air-like behavior
+    @Override
+    public boolean isReplaceable(IBlockAccess world, BlockPos pos) {
         return true;
     }
 
-    //@Override
-    public boolean isAir(IBlockAccess world, int x, int y, int z) {
+    @Override
+    public boolean isAir(IBlockState state, IBlockAccess world, BlockPos pos) {
         return true;
     }
 
-    //@Override
-    public AxisAlignedBB getCollisionBoundingBoxFromPool(World world, int x, int y, int z) {
-        // No collision box at all
-        return null;
+    @Override
+    public void onBlockAdded(World world, int x, int y, int z) {
+
     }
 
-    //@Override
-    public void addCollisionBoxesToList(World world, int x, int y, int z,
-                                        AxisAlignedBB mask,
-                                        List list,
-                                        Entity entity) {
-        // Don’t add any boxes, so nothing collides
+    // Collision
+    @Nullable
+    @Override
+    public AxisAlignedBB getCollisionBoundingBox(IBlockState state, IBlockAccess worldIn, BlockPos pos) {
+        return NULL_AABB; // no collision box
+    }
+
+    @Override
+    public void addCollisionBoxToList(IBlockState state, World worldIn, BlockPos pos,
+                                      AxisAlignedBB entityBox, List<AxisAlignedBB> collidingBoxes,
+                                      @Nullable Entity entityIn, boolean isActualState) {
+        // no collision added
     }
 
     @Override
     public boolean isCollidable() {
-        // Tells the engine “don’t even bother checking collision”
         return false;
     }
 
-    //@Override
-    public boolean canCollideCheck(int meta, boolean fullHit) {
-        // Prevent any ray‑tracing collision checks (e.g. for clicking)
-        return false;
-    }
-
-    //@SideOnly(Side.CLIENT)
-    //@Override
-    //public void registerBlockIcons(IIconRegister reg) {
-    //    this.icon = reg.registerIcon("mcheli:lightblock");
-    //}
-    //not needed
-
-    //@SideOnly(Side.CLIENT)
-    //@Override
-    //public IIcon getIcon(int side, int meta) {
-    //    return icon;
-    //}
-
+    // Placement updates (force relight)
     @Override
-    public void onBlockAdded(World world, int x, int y, int z) {
-        world.markAndNotifyBlock(x, y, z);
-        world.updateLightByType(EnumSkyBlock.BLOCK, x, y, z);
+    public void onBlockAdded(World worldIn, BlockPos pos, IBlockState state) {
+        worldIn.notifyBlockUpdate(pos, state, state, 3);
+        worldIn.checkLightFor(EnumSkyBlock.BLOCK, pos);
     }
 }

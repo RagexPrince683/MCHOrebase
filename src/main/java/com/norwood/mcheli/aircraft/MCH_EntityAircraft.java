@@ -1711,38 +1711,75 @@ public abstract class MCH_EntityAircraft
         this.prevPosition.put(new Vec3d(this.posX, this.posY, this.posZ));
     }
 
-    //called in onupdate
     private void updateSearchlightBlocks() {
+        if (world == null) {
+            // world is null, bail out
+            return;
+        }
         Set<BlockPos> newLights = new HashSet<>();
 
         if (!world.isRemote && haveSearchLight() && isSearchLightON()) {
-            for (Object o : this.getAcInfo().searchLights) {
-                MCH_AircraftInfo.SearchLight sl = (MCH_AircraftInfo.SearchLight) o;
-                Vec3d pos = getTransformedPosition(sl.pos);
+            if (this.getAcInfo() == null || this.getAcInfo().searchLights == null) {
+                // no search lights, skip
+            } else {
+                for (Object o : this.getAcInfo().searchLights) {
+                    if (!(o instanceof MCH_AircraftInfo.SearchLight)) {
+                        continue;
+                    }
+                    MCH_AircraftInfo.SearchLight sl = (MCH_AircraftInfo.SearchLight) o;
+                    Vec3d pos = getTransformedPosition(sl.pos);
+                    if (pos == null) {
+                        continue;
+                    }
 
-                BlockPos blockPos = new BlockPos(MathHelper.floor(pos.x),
-                        MathHelper.floor(pos.y),
-                        MathHelper.floor(pos.z));
+                    BlockPos blockPos = new BlockPos(
+                            MathHelper.floor(pos.x),
+                            MathHelper.floor(pos.y),
+                            MathHelper.floor(pos.z)
+                    );
+                    newLights.add(blockPos);
 
-                newLights.add(blockPos);
+                    if (!world.isBlockLoaded(blockPos)) {
+                        // chunk not loaded, skip placing
+                        continue;
+                    }
 
-                // Only place if the spot is pure air
-                if (world.isAirBlock(blockPos) && world.getBlockState(blockPos).getBlock() != MCH_MOD.lightBlock) {
-                    world.setBlockState(blockPos, MCH_MOD.lightBlock.getDefaultState(), 2);
-                    world.checkLightFor(EnumSkyBlock.BLOCK, blockPos);
+                    if (MCH_MOD.lightBlock == null) {
+                        // light block not yet initialized
+                        continue;
+                    }
+
+                    IBlockState current = world.getBlockState(blockPos);
+                    if (world.isAirBlock(blockPos)
+                            && current.getBlock() != MCH_MOD.lightBlock) {
+                        try {
+                            world.setBlockState(blockPos, MCH_MOD.lightBlock.getDefaultState(), 2);
+                            world.checkLightFor(EnumSkyBlock.BLOCK, blockPos);
+                        } catch (Throwable t) {
+                            t.printStackTrace();
+                            // log blockPos, etc
+                        }
+                    }
                 }
-
-                // If it's already our light block, just refresh it in newLights
             }
         }
 
-        // Remove old light blocks that are no longer needed
         for (BlockPos oldPos : activeLights) {
             if (!newLights.contains(oldPos)) {
-                // Only remove if it's still our light block
-                if (world.getBlockState(oldPos).getBlock() == MCH_MOD.lightBlock) {
-                    world.setBlockToAir(oldPos);
-                    world.checkLightFor(EnumSkyBlock.BLOCK, oldPos);
+                if (world == null) {
+                    break; // can't do more
+                }
+                if (world.isBlockLoaded(oldPos)) {
+                    IBlockState st = world.getBlockState(oldPos);
+                    if (st.getBlock() == MCH_MOD.lightBlock) {
+                        try {
+                            world.setBlockToAir(oldPos);
+                            world.notifyBlockUpdate(oldPos, st, Blocks.AIR.getDefaultState(), 3);
+                            world.checkLightFor(EnumSkyBlock.BLOCK, oldPos);
+                        } catch (Throwable t) {
+                            t.printStackTrace();
+                        }
+                    }
                 }
             }
         }
@@ -1750,6 +1787,7 @@ public abstract class MCH_EntityAircraft
         activeLights.clear();
         activeLights.addAll(newLights);
     }
+
 
     private void updateNoCollisionEntities() {
         if (!this.world.isRemote) {
@@ -3736,15 +3774,15 @@ public abstract class MCH_EntityAircraft
 
     @Override
     public void setDead() {
-        this.setDead(false);
+        super.setDead();  // call parent
+        if (world == null) {
+            return;
+        }
         for (BlockPos coord : activeLights) {
             IBlockState state = world.getBlockState(coord);
             if (state.getBlock() == MCH_MOD.lightBlock) {
-                // remove the block (replace with air)
                 world.setBlockToAir(coord);
-                // notify block update (client / render / neighboring blocks)
                 world.notifyBlockUpdate(coord, state, Blocks.AIR.getDefaultState(), 3);
-                // trigger a light recheck
                 world.checkLightFor(EnumSkyBlock.BLOCK, coord);
             }
         }

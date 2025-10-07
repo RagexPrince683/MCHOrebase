@@ -637,14 +637,13 @@ public class MCH_ClientProxy extends MCH_CommonProxy {
     }
 
     public void generateItemJsons() {
-        // Grab the mod's assets folder dynamically
-        File outputDir = new File(Minecraft.getMinecraft().gameDir, "mcheli_addons/generated/assets/mcheli/models/item");
-        outputDir.mkdirs(); // ensure directories exist
-
         for (Entry<String, MCH_ItemInfo> entry : ContentRegistries.item().entries()) {
             String name = entry.getKey();
-            File modelFile = new File(outputDir, name + ".json");
 
+            // Forge expects: mcheli:models/item/<name>.json
+            ResourceLocation modelLoc = new ResourceLocation("mcheli", name);
+
+            // JSON content Forge expects
             String json = "{\n" +
                     "  \"parent\": \"item/generated\",\n" +
                     "  \"textures\": {\n" +
@@ -652,15 +651,21 @@ public class MCH_ClientProxy extends MCH_CommonProxy {
                     "  }\n" +
                     "}";
 
-            try (FileWriter writer = new FileWriter(modelFile)) {
-                writer.write(json);
+            // Save the JSON to disk only if you absolutely need it for editing/testing:
+            try {
+                File outputFile = new File(Minecraft.getMinecraft().gameDir, "mcheli_addons/generated/assets/mcheli/models/item/" + name + ".json");
+                outputFile.getParentFile().mkdirs();
+                try (FileWriter writer = new FileWriter(outputFile)) {
+                    writer.write(json);
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
-        System.out.println("[MCH-LOADER] JSON generation complete at: " + outputDir.getAbsolutePath());
+        System.out.println("[MCH-LOADER] Item JSON generation complete.");
     }
+
 
 
 

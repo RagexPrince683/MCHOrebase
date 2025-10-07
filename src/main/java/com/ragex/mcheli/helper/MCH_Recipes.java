@@ -59,8 +59,12 @@ public class MCH_Recipes {
             }
         }
 
-        //might need to be false IDK
-        return false;
+        //fix shit hole code hopefully
+        if (recipe.getIngredients().isEmpty() || recipe.getIngredients().size() <= 0 || recipe.getIngredients().get(0) == Ingredient.EMPTY || recipe.getIngredients().get(0) == null) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
     public static boolean consumeInventory(EntityPlayer player, IRecipe recipe) {

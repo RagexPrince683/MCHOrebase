@@ -12,6 +12,7 @@ import com.ragex.mcheli.helper.addon.AddonManager;
 import com.ragex.mcheli.helper.addon.AddonPack;
 import com.ragex.mcheli.helper.addon.BuiltinAddonPack;
 import com.ragex.mcheli.hud.MCH_Hud;
+import com.ragex.mcheli.item.MCH_ItemInfo;
 import com.ragex.mcheli.plane.MCP_PlaneInfo;
 import com.ragex.mcheli.ship.MCH_ShipInfo;
 import com.ragex.mcheli.tank.MCH_TankInfo;
@@ -27,6 +28,7 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 public class ContentRegistries {
+    //I fucking hate how 1.12 does this stupid shit
     private static final Pattern PATH_SPLIT = Pattern.compile("[/\\\\]+");
     private static ContentRegistry<MCH_HeliInfo> REGISTORY_HELI = null;
     private static ContentRegistry<MCP_PlaneInfo> REGISTORY_PLANE = null;
@@ -35,6 +37,7 @@ public class ContentRegistries {
     private static ContentRegistry<MCH_VehicleInfo> REGISTORY_VEHICLE = null;
     private static ContentRegistry<MCH_WeaponInfo> REGISTORY_WEAPON = null;
     private static ContentRegistry<MCH_ThrowableInfo> REGISTORY_THROWABLE = null;
+    private static ContentRegistry<MCH_ItemInfo> REGISTORY_ITEM = null;
     private static ContentRegistry<MCH_Hud> REGISTORY_HUD = null;
 
     private static String[] splitPath(String filepath) {
@@ -77,6 +80,9 @@ public class ContentRegistries {
     public static ContentRegistry<MCH_ThrowableInfo> throwable() {
         return REGISTORY_THROWABLE;
     }
+    public static ContentRegistry<MCH_ItemInfo> item() {
+        return REGISTORY_ITEM;
+    }
 
     public static ContentRegistry<MCH_Hud> hud() {
         return REGISTORY_HUD;
@@ -98,6 +104,8 @@ public class ContentRegistries {
             return (ContentRegistry<T>) REGISTORY_WEAPON;
         } else if (clazz == MCH_ThrowableInfo.class) {
             return (ContentRegistry<T>) REGISTORY_THROWABLE;
+        }else if (clazz == MCH_ItemInfo.class) {
+            return (ContentRegistry<T>) REGISTORY_ITEM;
         } else if (clazz == MCH_Hud.class) {
             return (ContentRegistry<T>) REGISTORY_HUD;
         } else {
@@ -126,6 +134,7 @@ public class ContentRegistries {
         REGISTORY_TANK = parseContents(MCH_TankInfo.class, "tanks", contents.get(ContentType.TANK));
         REGISTORY_VEHICLE = parseContents(MCH_VehicleInfo.class, "vehicles", contents.get(ContentType.VEHICLE));
         REGISTORY_THROWABLE = parseContents(MCH_ThrowableInfo.class, "throwable", contents.get(ContentType.THROWABLE));
+        REGISTORY_ITEM = parseContents(MCH_ItemInfo.class, "item", contents.get(ContentType.ITEM));
     }
 
     public static IContentData reparseContent(IContentData content, String dir) {

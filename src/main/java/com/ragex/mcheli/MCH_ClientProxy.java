@@ -41,6 +41,7 @@ import com.ragex.mcheli.tank.MCH_TankInfo;
 import com.ragex.mcheli.throwable.MCH_EntityThrowable;
 import com.ragex.mcheli.throwable.MCH_RenderThrowable;
 import com.ragex.mcheli.throwable.MCH_ThrowableInfo;
+import com.ragex.mcheli.item.MCH_ItemInfo;
 import com.ragex.mcheli.uav.MCH_EntityUavStation;
 import com.ragex.mcheli.uav.MCH_RenderUavStation;
 import com.ragex.mcheli.vehicle.MCH_EntityVehicle;
@@ -242,6 +243,8 @@ public class MCH_ClientProxy extends MCH_CommonProxy {
             long end = System.nanoTime();
             System.out.println("[MCH-LOADER][THROWABLES] Loaded in " + ((end - start) / 1_000_000) + " ms");
         });
+
+        //I don't think items are req here idk though
 
         CompletableFuture<Void> allTasks = CompletableFuture.allOf(
                 heliFuture, planeFuture, shipFuture, tankFuture, vehicleFuture, bulletFuture, throwableFuture, uavFuture, miscFuture

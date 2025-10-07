@@ -131,46 +131,19 @@ public class MCH_MOD {
     public static void registerItemCustom() {
         System.out.println("[mcheli.MCH_MOD:registerItemCustom] Starting custom item registration...");
 
-        Iterator<String> i$ = MCH_ItemInfoManager.getKeySet().iterator();
-
-        while (i$.hasNext()) {
-            String name = i$.next();
-            System.out.println("[mcheli.MCH_MOD:registerItemCustom] Processing item: " + name);
-
-            // Get the item info for the current item
-            MCH_ItemInfo info = MCH_ItemInfoManager.get(name);
-
-            // Check if item info is null
-            if (info == null) {
-                System.out.println("[mcheli.MCH_MOD:registerItemCustom] Error: Item info for " + name + " is null! Skipping...");
-                continue;
-            }
-
-            // Separate logic for throwable items (grenades)
-            if (isThrowableItem(name)) {
-                // Skip registering the throwable item in the normal item registration logic
-                System.out.println("[mcheli.MCH_MOD:registerItemCustom] Skipping throwable item: " + name);
-                continue;
-            }
-
-            // Register as a normal item (non-throwable)
+        for (Entry<String, MCH_ItemInfo> entry : ContentRegistries.item().entries()) {
+            MCH_ItemInfo info = entry.getValue();
             info.item = new MCH_Item(info.itemID);
             info.item.setMaxStackSize(info.stackSize);
-            registerItem(info.item, name, creativeTabsItem);
+            registerItem(info.item, entry.getKey(), creativeTabs);
+            //MCH_Item.registerDispenseBehavior(info.item);
             info.itemID = W_Item.getIdFromItem(info.item) - 256;
             W_LanguageRegistry.addName(info.item, info.displayName);
 
-            // Register item names in multiple languages
-            //for (String lang : info.displayNameLang.keySet()) {
-            //   W_LanguageRegistry.addNameForObject(info.item, (Object) lang, info.displayNameLang.get(lang));
-            //}
-            //let's get one thing fucking clear before I split you in two. The lang is Fucking Working.
+            for (String lang : info.displayNameLang.keySet()) {
+                W_LanguageRegistry.addNameForObject(info.item, lang, info.displayNameLang.get(lang));
+            }
         }
-    }
-
-    private static boolean isThrowableItem(String name) {
-        return name.toLowerCase().contains("grenade");
-        //worst method in the world award
     }
 
     public static void registerItemThrowable() {
@@ -187,6 +160,11 @@ public class MCH_MOD {
                 W_LanguageRegistry.addNameForObject(info.item, lang, info.displayNameLang.get(lang));
             }
         }
+    }
+
+    private static boolean isThrowableItem(String name) {
+        return name.toLowerCase().contains("grenade");
+        //worst method in the world award
     }
 
     public static void registerItemAircraft() {

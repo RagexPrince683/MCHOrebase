@@ -9,6 +9,7 @@ import com.ragex.mcheli.plane.MCP_PlaneInfo;
 import com.ragex.mcheli.tank.MCH_TankInfo;
 import com.ragex.mcheli.ship.MCH_ShipInfo;
 import com.ragex.mcheli.throwable.MCH_ThrowableInfo;
+import com.ragex.mcheli.item.MCH_ItemInfo;
 import com.ragex.mcheli.vehicle.MCH_VehicleInfo;
 import com.ragex.mcheli.weapon.MCH_WeaponInfo;
 
@@ -26,6 +27,7 @@ public class ContentFactories {
         TABLE.put("tanks", createFactory(ContentType.TANK, MCH_TankInfo::new));
         TABLE.put("vehicles", createFactory(ContentType.VEHICLE, MCH_VehicleInfo::new));
         TABLE.put("throwable", createFactory(ContentType.THROWABLE, MCH_ThrowableInfo::new));
+        TABLE.put("item", createFactory(ContentType.ITEM, MCH_ItemInfo::new));
         TABLE.put("weapons", createFactory(ContentType.WEAPON, MCH_WeaponInfo::new));
         if (MCH_Utils.isClient()) {
             TABLE.put("hud", createFactory(ContentType.HUD, MCH_Hud::new));

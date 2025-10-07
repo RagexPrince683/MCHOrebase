@@ -8,6 +8,8 @@ import com.ragex.mcheli.aircraft.MCH_AircraftInfo;
 import com.ragex.mcheli.aircraft.MCH_AircraftInfoManager;
 import com.ragex.mcheli.helicopter.MCH_HeliInfo;
 import com.ragex.mcheli.helicopter.MCH_HeliInfoManager;
+import com.ragex.mcheli.item.MCH_ItemInfo;
+import com.ragex.mcheli.item.MCH_ItemInfoManager;
 import com.ragex.mcheli.plane.MCP_PlaneInfo;
 import com.ragex.mcheli.plane.MCP_PlaneInfoManager;
 import com.ragex.mcheli.ship.MCH_ShipInfo;
@@ -110,6 +112,48 @@ public class MCH_ItemRecipe implements MCH_IRecipeList {
 
             info.recipeString = null;
         }
+
+        /**
+         * 1.7 schizophrenia for reference
+        MCH_ItemInfo info5;
+        //YOU WILL REGISTER THE FUCKING RECIPE AND YOU WILL LIKE IT MOTHERFUCKER
+        for(i$ = MCH_ItemInfoManager.getKeySet().iterator(); i$.hasNext(); info5.recipeString = null) {
+            name = (String)i$.next();
+            info5 = MCH_ItemInfoManager.get(name);
+            Iterator i$1 = info5.recipeString.iterator();
+
+            while(i$1.hasNext()) {
+                String s = (String)i$1.next();
+                if(s.length() >= 3) {
+                    IRecipe recipe = addRecipe(info5.item, s, info5.isShapedRecipe);
+                    info5.recipe.add(recipe);
+                    addRecipeList(recipe);
+                }
+            }
+         }
+         **/
+
+        //1.12 schizophrenia
+
+
+        for (MCH_ItemInfo info : ContentRegistries.item().values()) {
+            for (String s : info.recipeString) {
+                if (s.length() >= 3) {
+                    IRecipe recipe = addRecipe(info.name, info.item, s, info.isShapedRecipe);
+                    if (recipe != null) {
+                        info.recipe.add(recipe);
+                        addRecipeList(recipe); // optionally registers in the IForgeRegistry
+                    }
+                }
+            }
+            info.recipeString = null;
+        }
+
+
+
+
+
+
     }
 
     private static <T extends MCH_AircraftInfo> void addRecipeAndRegisterList(MCH_AircraftInfo info, Item item, MCH_AircraftInfoManager<T> im) {

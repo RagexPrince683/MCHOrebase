@@ -3,23 +3,27 @@ package com.ragex.mcheli.item;
 import com.ragex.mcheli.MCH_BaseInfo;
 import com.ragex.mcheli.helper.addon.AddonResourceLocation;
 import com.ragex.mcheli.helper.info.IContentData;
+import com.ragex.mcheli.helper.info.IItemContent;
 import com.ragex.mcheli.wrapper.W_Item;
+import net.minecraft.item.Item;
+import net.minecraft.item.crafting.IRecipe;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class MCH_ItemInfo extends MCH_BaseInfo implements IContentData { //implements
+public class MCH_ItemInfo extends MCH_BaseInfo implements IItemContent { //implements
     public final String name;
     public String displayName;
-    public HashMap displayNameLang;
+    public final HashMap<String, String> displayNameLang;
     public int itemID;
     public W_Item item;
-    public List recipeString;
-    public List recipe;
+    public List<String> recipeString;
+    public final List<IRecipe> recipe;
     public boolean isShapedRecipe;
     public int stackSize;
 
+    //1.7 method:
     //public MCH_ItemInfo(String name) {
     //    this.name = name;
     //    this.displayName = name;
@@ -32,10 +36,10 @@ public class MCH_ItemInfo extends MCH_BaseInfo implements IContentData { //imple
     //    this.stackSize = 1;
     //}
 
-    public MCH_ItemInfo(AddonResourceLocation location, String filePath, String name) {
+    public MCH_ItemInfo(AddonResourceLocation location, String filePath) {
         super(location, filePath); // required in 1.12.2 or something
-        this.name = name;
-        this.displayName = name;
+        this.name = location.getPath();
+        this.displayName = location.getPath();
         this.displayNameLang = new HashMap<>();
         this.itemID = 0;
         this.item = null;
@@ -44,6 +48,53 @@ public class MCH_ItemInfo extends MCH_BaseInfo implements IContentData { //imple
         this.isShapedRecipe = true;
         this.stackSize = 1;
     }
+
+    @Override
+    public Item getItem() {
+        return this.item;
+    }
+
+    /**
+     * public MCH_ThrowableInfo(AddonResourceLocation location, String path) {
+     *         super(location, path);
+     *         this.name = location.getPath();
+     *         this.displayName = location.getPath();
+     *         this.displayNameLang = new HashMap<>();
+     *         this.itemID = 0;
+     *         this.item = null;
+     *         this.recipeString = new ArrayList<>();
+     *         this.recipe = new ArrayList<>();
+     *         this.isShapedRecipe = true;
+     *         this.power = 0;
+     *         this.acceleration = 1.0F;
+     *         this.accelerationInWater = 1.0F;
+     *         this.dispenseAcceleration = 1.0F;
+     *         this.explosion = 0;
+     *         this.delayFuse = 0;
+     *         this.bound = 0.2F;
+     *         this.timeFuse = 0;
+     *         this.flaming = false;
+     *         this.stackSize = 1;
+     *         this.soundVolume = 1.0F;
+     *         this.soundPitch = 1.0F;
+     *         this.proximityFuseDist = 0.0F;
+     *         this.accuracy = 0.0F;
+     *         this.aliveTime = 10;
+     *         this.bomblet = 0;
+     *         this.bombletDiff = 0.3F;
+     *         this.model = null;
+     *         this.smokeSize = 10.0F;
+     *         this.smokeNum = 0;
+     *         this.smokeVelocityVertical = 1.0F;
+     *         this.smokeVelocityHorizontal = 1.0F;
+     *         this.gravity = 0.0F;
+     *         this.gravityInWater = -0.04F;
+     *         this.particleName = "explode";
+     *         this.disableSmoke = true;
+     *         this.smokeColor = new MCH_Color();
+     *     }
+
+     */
 
     public void loadItemData(String item, String data) {
         if(item.compareTo("displayname") == 0) {

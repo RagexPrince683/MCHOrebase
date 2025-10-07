@@ -42,30 +42,28 @@ public class MCH_Recipes {
     }
 
     public static boolean canCraft(EntityPlayer player, IRecipe recipe) {
+        if (recipe == null) return false;
+        if (recipe.getIngredients().isEmpty()) return false;
+
         for (Ingredient ingredient : recipe.getIngredients()) {
-            if (ingredient != Ingredient.EMPTY && ingredient != null) {
-                boolean flag = false;
+            if (ingredient == null || ingredient == Ingredient.EMPTY) continue; // skip blanks
 
-                for (ItemStack itemstack : player.inventory.mainInventory) {
-                    if (ingredient.apply(itemstack)) {
-                        flag = true;
-                        break;
-                    }
+            boolean found = false;
+            for (ItemStack stack : player.inventory.mainInventory) {
+                if (ingredient.apply(stack)) {
+                    found = true;
+                    break;
                 }
+            }
 
-                if (!flag) {
-                    return false;
-                }
+            if (!found) {
+                return false;
             }
         }
 
-        //fix shit hole code hopefully
-        if (recipe.getIngredients().isEmpty() || recipe.getIngredients().size() <= 0 || recipe.getIngredients().get(0) == Ingredient.EMPTY || recipe.getIngredients().get(0) == null) {
-            return false;
-        } else {
-            return true;
-        }
+        return true;
     }
+
 
     public static boolean consumeInventory(EntityPlayer player, IRecipe recipe) {
         for (Ingredient ingredient : recipe.getIngredients()) {

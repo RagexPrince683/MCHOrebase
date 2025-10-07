@@ -435,14 +435,22 @@ public class MCH_DraftingTableGui extends W_GuiContainer {
     private void updateEnableCreateButton() {
         MCH_DraftingTableGuiContainer container = (MCH_DraftingTableGuiContainer) this.inventorySlots;
         this.buttonCreate.enabled = false;
-        if (!container.getSlot(container.outputSlotIndex).getHasStack() && MCH_Recipes.canCraft(this.thePlayer, this.current.recipe) && this.current != null) {
-            this.buttonCreate.enabled = MCH_Recipes.canCraft(this.thePlayer, this.current.recipe);
+
+        if (this.current != null) {
+            boolean hasOutput = container.getSlot(container.outputSlotIndex).getHasStack();
+            boolean canCraft = MCH_Recipes.canCraft(this.thePlayer, this.current.recipe);
+
+            // enable if output is empty and recipe is craftable
+            if (!hasOutput && canCraft) {
+                this.buttonCreate.enabled = true;
+            }
         }
 
         if (this.thePlayer.capabilities.isCreativeMode) {
             this.buttonCreate.enabled = true;
         }
     }
+
 
     protected void keyTyped(char par1, int keycode) throws IOException {
 

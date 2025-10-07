@@ -7,16 +7,9 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.init.Blocks;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemMapBase;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.IRecipe;
-import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.item.crafting.ShapedRecipes;
-import net.minecraft.item.crafting.ShapelessRecipes;
-import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
@@ -24,74 +17,14 @@ import net.minecraft.world.World;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 
 public class MCH_Lib {
     public static final String[] AZIMUTH_8 = new String[]{"S", "SW", "W", "NW", "N", "NE", "E", "SE"};
     public static final int AZIMUTH_8_ANG = 360 / AZIMUTH_8.length;
     private static final HashMap<String, Material> mapMaterial = new HashMap<>();
-
-    //public static boolean canPlayerCreateItem(IRecipe recipe, InventoryPlayer inventory) {
-    //    if(recipe != null) {
-    //        Map map = getItemMapFromRecipe(recipe);
-//
-    //        for(int i$ = 0; i$ < inventory.getSizeInventory(); ++i$) {
-    //            ItemStack i = inventory.getStackInSlot(i$);
-    //            if(i != null) {
-    //                Item item = i.getItem();
-    //                if(map.containsKey(item)) {
-    //                    map.put(item, Integer.valueOf(((Integer)map.get(item)).intValue() - i.getMaxStackSize()));
-    //                }
-    //            }
-    //        }
-//
-    //        Iterator var6 = map.values().iterator();
-//
-    //        int var7;
-    //        do {
-    //            if(!var6.hasNext()) {
-    //                return true;
-    //            }
-//
-    //            var7 = ((Integer)var6.next()).intValue();
-    //        } while(var7 <= 0);
-//
-    //        return false;
-    //    } else {
-    //        return false;
-    //    }
-    //}
-
-    //public static Map<Item, Integer> getItemMapFromRecipe(IRecipe recipe) {
-    //    Map<Item, Integer> map = new HashMap<>();
-//
-    //    if (recipe instanceof ShapedRecipes) {
-    //        NonNullList<Ingredient> ingredients = ((ShapedRecipes) recipe).recipeItems;
-    //        for (Ingredient ingredient : ingredients) {
-    //            if (!ingredient.apply(ItemStack.EMPTY)) { // skip empty ingredients
-    //                ItemStack[] matching = ingredient.getMatchingStacks();
-    //                if (matching.length > 0) {
-    //                    Item item = matching[0].getItem();
-    //                    map.put(item, map.getOrDefault(item, 0) + 1);
-    //                }
-    //            }
-    //        }
-    //    } else if (recipe instanceof ShapelessRecipes) {
-    //        NonNullList<Ingredient> ingredients = ((ShapelessRecipes) recipe).recipeItems;
-    //        for (Ingredient ingredient : ingredients) {
-    //            if (!ingredient.apply(ItemStack.EMPTY)) {
-    //                ItemStack[] matching = ingredient.getMatchingStacks();
-    //                if (matching.length > 0) {
-    //                    Item item = matching[0].getItem();
-    //                    map.put(item, map.getOrDefault(item, 0) + 1);
-    //                }
-    //            }
-    //        }
-    //    }
-//
-    //    return map;
-    //}
-
 
     public static void init() {
         mapMaterial.clear();

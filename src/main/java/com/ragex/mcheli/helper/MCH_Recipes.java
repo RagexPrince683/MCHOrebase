@@ -43,7 +43,7 @@ public class MCH_Recipes {
 
     public static boolean canCraft(EntityPlayer player, IRecipe recipe) {
         for (Ingredient ingredient : recipe.getIngredients()) {
-            if (ingredient != Ingredient.EMPTY && ingredient != null) {
+            if (ingredient != Ingredient.EMPTY) {
                 boolean flag = false;
 
                 for (ItemStack itemstack : player.inventory.mainInventory) {
@@ -59,13 +59,12 @@ public class MCH_Recipes {
             }
         }
 
-        //might need to be false IDK
-        return false;
+        return true;
     }
 
     public static boolean consumeInventory(EntityPlayer player, IRecipe recipe) {
         for (Ingredient ingredient : recipe.getIngredients()) {
-            if (ingredient != Ingredient.EMPTY || ingredient != null) {
+            if (ingredient != Ingredient.EMPTY) {
                 int i = 0;
                 boolean flag = false;
 

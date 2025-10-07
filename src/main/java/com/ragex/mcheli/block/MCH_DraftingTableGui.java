@@ -277,21 +277,9 @@ public class MCH_DraftingTableGui extends W_GuiContainer {
 
     public void updateScreen() {
         super.updateScreen();
-        //MCH_DraftingTableGuiContainer container = (MCH_DraftingTableGuiContainer)super.inventorySlots;
-        //this.buttonCreate.enabled = false;
-        //if(!container.getSlot(container.outputSlotIndex).getHasStack() && MCH_Lib.canPlayerCreateItem(this.current.recipe, this.thePlayer.inventory)) {
-        //    this.buttonCreate.enabled = true;
-        //}
-        updateEnableCreateButton();
-//
-        //if(this.thePlayer.capabilities.isCreativeMode) {
-        //    this.buttonCreate.enabled = true;
-        //}
-
-        if(this.buttonClickWait > 0) {
-            --this.buttonClickWait;
+        if (this.buttonClickWait > 0) {
+            this.buttonClickWait--;
         }
-
     }
 
     public void onGuiClosed() {
@@ -430,12 +418,10 @@ public class MCH_DraftingTableGui extends W_GuiContainer {
         }
     }
 
-    //depricated... ?
-    //changed
     private void updateEnableCreateButton() {
         MCH_DraftingTableGuiContainer container = (MCH_DraftingTableGuiContainer) this.inventorySlots;
         this.buttonCreate.enabled = false;
-        if (!container.getSlot(container.outputSlotIndex).getHasStack() && MCH_Recipes.canCraft(this.thePlayer, this.current.recipe) && this.current != null) {
+        if (!container.getSlot(container.outputSlotIndex).getHasStack()) {
             this.buttonCreate.enabled = MCH_Recipes.canCraft(this.thePlayer, this.current.recipe);
         }
 

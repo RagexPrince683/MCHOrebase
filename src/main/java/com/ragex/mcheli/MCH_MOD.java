@@ -135,7 +135,7 @@ public class MCH_MOD {
             MCH_ItemInfo info = entry.getValue();
             info.item = new MCH_Item(info.itemID);
             info.item.setMaxStackSize(info.stackSize);
-            registerItem(info.item, entry.getKey(), creativeTabs);
+            registerItem(info.item, entry.getKey(), creativeTabsItem);
             //MCH_Item.registerDispenseBehavior(info.item);
             info.itemID = W_Item.getIdFromItem(info.item) - 256;
             W_LanguageRegistry.addName(info.item, info.displayName);

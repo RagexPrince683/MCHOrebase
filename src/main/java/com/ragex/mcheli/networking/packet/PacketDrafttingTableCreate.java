@@ -33,6 +33,7 @@ public class PacketDrafttingTableCreate implements ClientToServerPacket {
 
     @Override
     public void onReceive(EntityPlayerMP player) {
+        //todo here
         var recipe = ForgeRegistries.RECIPES.getValue(new ResourceLocation(this.recipe));
         if (recipe == null) return;
         boolean openScreen = player.openContainer instanceof MCH_DraftingTableGuiContainer;

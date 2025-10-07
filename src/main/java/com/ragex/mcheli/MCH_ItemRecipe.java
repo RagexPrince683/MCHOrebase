@@ -275,7 +275,7 @@ public class MCH_ItemRecipe implements MCH_IRecipeList {
                 }
 
                 for (int ix = 0; ix < r.recipeItems.size(); ix++) {
-                    if (r.recipeItems.get(ix) != Ingredient.EMPTY) {
+                    if (r.recipeItems.get(ix) != Ingredient.EMPTY || r.recipeItems.get(ix) != null) {
                         Arrays.stream(r.recipeItems.get(ix).getMatchingStacks()).anyMatch(stack -> {
                             stack.getItem();
                             return false;

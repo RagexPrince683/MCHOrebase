@@ -50,31 +50,73 @@ import com.ragex.mcheli.vehicle.MCH_VehicleInfo;
 import com.ragex.mcheli.weapon.*;
 import com.ragex.mcheli.wrapper.*;
 import com.ragex.mcheli.wrapper.modelloader.W_ModelCustom;
+import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.entity.Entity;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraftforge.client.event.ModelRegistryEvent;
+import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.client.model.ModelLoaderRegistry;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
+import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.Map.Entry;
+
+import net.minecraftforge.client.MinecraftForgeClient;
+
 
 public class MCH_ClientProxy extends MCH_CommonProxy {
+
+    @SideOnly(Side.CLIENT)
+    @Mod.EventBusSubscriber(modid = "mcheli", value = Side.CLIENT)
+    public class MCH_ModelKiller {
+
+        @SubscribeEvent
+        public static void onModelRegistry(ModelRegistryEvent evt) {
+            for (Entry<String, MCH_ItemInfo> e : ContentRegistries.item().entries()) {
+                MCH_ItemInfo info = e.getValue();
+                if (info.item == null) continue;
+
+                // Use a custom path that your loader accepts:
+                ResourceLocation modelLoc = new ResourceLocation("mcheli", e.getKey());
+                ModelLoader.setCustomModelResourceLocation(info.item, 0,
+                        new ModelResourceLocation(modelLoc, "inventory"));
+            }
+        }
+    }
+
+    //@SideOnly(Side.CLIENT)
+    //public static void registerItemRenderers() {
+    //    for (Entry<String, MCH_ItemInfo> entry : ContentRegistries.item().entries()) {
+    //        MCH_ItemInfo info = entry.getValue();
+    //        if (info.item == null) continue;
+    //        MinecraftForgeClient.registerItemRenderer(info.item, new MCH_ItemRenderBase());
+    //    }
+    //}
     public String lastLoadHUDPath = "";
 
 
     @Override
     public void postInit(FMLPostInitializationEvent postEvent) {
         MinecraftForge.EVENT_BUS.register(new VehicleRenderManager());
-
+        generateItemJsons();
     }
+
     public static void registerModels_Bullet() {
         for (MCH_WeaponInfo wi : ContentRegistries.weapon().values()) {
             _IModelCustom m;
@@ -593,4 +635,33 @@ public class MCH_ClientProxy extends MCH_CommonProxy {
     public void updateSoundsJson() {
         MCH_SoundsJson.updateGenerated();
     }
+
+    public void generateItemJsons() {
+        // Grab the mod's assets folder dynamically
+        File outputDir = new File(Minecraft.getMinecraft().gameDir, "mcheli_addons/generated/assets/mcheli/models/item");
+        outputDir.mkdirs(); // ensure directories exist
+
+        for (Entry<String, MCH_ItemInfo> entry : ContentRegistries.item().entries()) {
+            String name = entry.getKey();
+            File modelFile = new File(outputDir, name + ".json");
+
+            String json = "{\n" +
+                    "  \"parent\": \"item/generated\",\n" +
+                    "  \"textures\": {\n" +
+                    "    \"layer0\": \"mcheli:items/" + name + "\"\n" +
+                    "  }\n" +
+                    "}";
+
+            try (FileWriter writer = new FileWriter(modelFile)) {
+                writer.write(json);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        System.out.println("[MCH-LOADER] JSON generation complete at: " + outputDir.getAbsolutePath());
+    }
+
+
+
 }
